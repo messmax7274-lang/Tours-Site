@@ -371,3 +371,5 @@ app.post('/api/matches/:id/ban', authenticateToken, (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+app.use(express.static('public'));
