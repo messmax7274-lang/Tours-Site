@@ -1,86 +1,120 @@
-/* Custom Utility Styles & Modern Dark UI */
-body {
-  margin: 0;
-  user-select: none;
-}
-
-.btn-cyan {
-  background-color: #06b6d4;
-  color: #0f172a;
-  font-weight: 600;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  transition: all 0.2s;
-  cursor: pointer;
-  border: none;
-}
-
-.btn-cyan:hover {
-  background-color: #22d3ee;
-  box-shadow: 0 0 12px rgba(34, 211, 238, 0.4);
-}
-
-.tab-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem 1rem;
-  border-bottom: 2px solid transparent;
-  transition: all 0.2s;
-}
-
-.tab-btn.active {
-  border-color: #22d3ee;
-}
-
-.match-card {
-  width: 220px;
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-  position: absolute;
-  transition: border-color 0.2s;
-}
-
-.match-card:hover {
-  border-color: #22d3ee;
-}
-
-.match-card.winner-1 .team-1,
-.match-card.winner-2 .team-2 {
-  color: #22d3ee;
-  font-weight: bold;
-  background: rgba(34, 211, 238, 0.1);
-}
-
-.map-card {
-  position: relative;
-  overflow: hidden;
-  border-radius: 8px;
-  border: 2px solid #334155;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.map-card.banned {
-  filter: grayscale(1);
-  opacity: 0.4;
-  cursor: not-allowed;
-  border-color: #ef4444;
-}
-
-.map-card:hover:not(.banned) {
-  border-color: #22d3ee;
-  transform: scale(1.02);
-}
-
-/* Базовый сброс и плавные переходы */
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
 body {
-  margin: 0;
-  background-color: #0f172a;
+  background-color: #0b0c10;
+  color: #c5c6c7;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+header {
+  background-color: #1f2833;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #66fcf1;
+}
+
+.logo {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #66fcf1;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+nav a {
+  color: #c5c6c7;
+  text-decoration: none;
+  margin-left: 1.5rem;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+nav a:hover, nav a.active {
+  color: #66fcf1;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  flex: 1;
+  width: 100%;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.hero p {
+  color: #45a29e;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  background-color: #1f2833;
+  border-radius: 8px;
+  padding: 1.5rem;
+  border: 1px solid #45a29e;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card h3 {
+  color: #66fcf1;
+  margin-bottom: 0.5rem;
+}
+
+.card p {
+  color: #c5c6c7;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.btn {
+  display: inline-block;
+  background-color: #66fcf1;
+  color: #0b0c10;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  text-decoration: none;
+  text-align: center;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn:hover {
+  background-color: #45a29e;
+  color: #fff;
+}
+
+.empty-msg {
+  color: #888;
+  font-style: italic;
+  text-align: center;
+  grid-column: 1 / -1;
+  padding: 2rem;
 }
