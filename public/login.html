@@ -2,8 +2,10 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CYBERGRID - Вход</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-6">
 
@@ -20,8 +22,16 @@
         <label class="block text-xs font-semibold text-slate-400 mb-1">Пароль</label>
         <input type="password" name="password" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500">
       </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 mb-1">Выберите роль при регистрации</label>
+        <select name="role" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500">
+          <option value="viewer">Участник / Зритель</option>
+          <option value="captain">Лидер команды (Капитан)</option>
+          <option value="admin">Администратор</option>
+        </select>
+      </div>
       <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-2.5 rounded-lg text-sm transition mt-2">
-        Войти
+        Войти / Зарегистрироваться
       </button>
     </form>
   </div>
