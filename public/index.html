@@ -4,99 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AETHER CINEMA & TOURNAMENTS</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    body {
-      background-color: #0f0f15;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-    header {
-      background-color: #181824;
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #2a2a3d;
-    }
-    .logo {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #ff4655;
-      letter-spacing: 2px;
-    }
-    nav a {
-      color: #aaa;
-      text-decoration: none;
-      margin-left: 1.5rem;
-      transition: color 0.2s;
-    }
-    nav a:hover, nav a.active {
-      color: #fff;
-    }
-    .container {
-      max-width: 1000px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-      flex: 1;
-    }
-    .hero {
-      text-align: center;
-      margin-bottom: 3rem;
-    }
-    .hero h1 {
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
-      color: #fff;
-    }
-    .hero p {
-      color: #888;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-    }
-    .card {
-      background-color: #181824;
-      border-radius: 8px;
-      padding: 1.5rem;
-      border: 1px solid #2a2a3d;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .card h3 {
-      color: #ff4655;
-      margin-bottom: 0.5rem;
-    }
-    .card p {
-      color: #aaa;
-      font-size: 0.9rem;
-      margin-bottom: 1rem;
-    }
-    .btn {
-      display: inline-block;
-      background-color: #ff4655;
-      color: #fff;
-      padding: 0.6rem 1.2rem;
-      border-radius: 4px;
-      text-decoration: none;
-      text-align: center;
-      font-weight: bold;
-      transition: background 0.2s;
-    }
-    .btn:hover {
-      background-color: #e03e4d;
-    }
-  </style>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
@@ -113,30 +21,30 @@
   <div class="container">
     <div class="hero">
       <h1>Турнирная Платформа AETHER</h1>
-      <p>Следите за матчами, регистрируйте команды и выбирайте карты</p>
+      <p>Управление командами, маппулом и турнирной сеткой</p>
     </div>
 
     <div class="grid">
       <div class="card">
         <div>
           <h3>Авторизация</h3>
-          <p>Зайдите в систему как капитан или админ, чтобы управлять турниром.</p>
+          <p>Вход для капитанов и администраторов турнира.</p>
         </div>
         <a href="/login.html" class="btn">Перейти к входу</a>
       </div>
 
       <div class="card">
         <div>
-          <h3>Список Команд</h3>
-          <p>Просмотр зарегистрированных команд и участников турнира.</p>
+          <h3>Команды</h3>
+          <p>Просмотр участников и регистрация новых команд.</p>
         </div>
-        <a href="/teams.html" class="btn">Смотреть команды</a>
+        <a href="/teams.html" class="btn">Список команд</a>
       </div>
 
       <div class="card">
         <div>
           <h3>Маппул</h3>
-          <p>Карты, доступные для банов и пиков на текущем турнире.</p>
+          <p>Список карт, доступных для турнира.</p>
         </div>
         <a href="/maps.html" class="btn">Список карт</a>
       </div>
