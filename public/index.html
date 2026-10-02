@@ -4,103 +4,113 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CyberArena Tournament System</title>
-  <!-- Подключаем Tailwind CDN для моментальной поддержки классов -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans antialiased p-6">
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans p-6">
 
-  <!-- Шапка / Навигация -->
+  <!-- Шапка -->
   <header class="max-w-6xl w-full mx-auto flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-800">
     <h1 class="text-3xl font-extrabold tracking-wider text-cyan-400">CYBERGRID</h1>
     
     <div class="flex items-center gap-4">
-      <select class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500">
-        <option>Выберите турнир...</option>
+      <select id="tournamentSelect" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none">
+        <option value="">Выберите турнир...</option>
       </select>
-      <button class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm transition">
+      
+      <!-- Статус авторизации -->
+      <div id="userInfo" class="hidden text-sm text-cyan-300 font-medium"></div>
+      <button id="openAuthBtn" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm transition">
         Войти / Регистрация
       </button>
     </div>
   </header>
 
-  <!-- Навигация по разделам -->
+  <!-- Навигационные Вкладки -->
   <nav class="max-w-6xl w-full mx-auto my-6 flex gap-2 border-b border-slate-800 text-sm font-medium">
-    <button class="px-4 py-2 border-b-2 border-cyan-400 text-cyan-400 font-semibold">Сетка Турнира</button>
-    <button class="px-4 py-2 text-slate-400 hover:text-slate-200">Карты</button>
-    <button class="px-4 py-2 text-slate-400 hover:text-slate-200">Команды</button>
-    <button class="px-4 py-2 text-slate-400 hover:text-slate-200">Турниры</button>
+    <button class="nav-tab active px-4 py-2 border-b-2 border-cyan-400 text-cyan-400" data-tab="grid">Сетка Турнира</button>
+    <button class="nav-tab px-4 py-2 text-slate-400 hover:text-slate-200" data-tab="maps">Карты</button>
+    <button class="nav-tab px-4 py-2 text-slate-400 hover:text-slate-200" data-tab="teams">Команды</button>
+    <button class="nav-tab px-4 py-2 text-slate-400 hover:text-slate-200" data-tab="tournaments">Турниры</button>
   </nav>
 
-  <!-- Подсказка -->
-  <div class="max-w-6xl w-full mx-auto mb-6 text-xs text-slate-400 bg-slate-800/50 p-3 rounded-lg border border-slate-800">
-    <b>Pan:</b> Зажмите ЛКМ на фоне | <b>Zoom:</b> Колесо мыши | <b>Drag:</b> Перетаскивание блоков (Admin)
-  </div>
+  <!-- Контент по вкладкам -->
+  <main class="max-w-6xl w-full mx-auto">
 
-  <!-- Основной контент (Сетка блоков управления) -->
-  <main class="max-w-6xl w-full mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-
-    <!-- Управление Картами -->
-    <section class="bg-slate-800 border border-slate-700/60 rounded-xl p-5 shadow-lg">
-      <h2 class="text-xl font-bold mb-4 text-cyan-300">Управление Картами</h2>
-      <div class="flex flex-col sm:flex-row gap-2">
-        <input type="text" placeholder="Название карты" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm w-full text-slate-100 placeholder-slate-500">
-        <input type="text" placeholder="URL Картинки" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm w-full text-slate-100 placeholder-slate-500">
-        <button class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm shrink-0">Добавить</button>
+    <!-- Вкладка 1: Сетка Турнира -->
+    <div id="tab-grid" class="tab-content">
+      <div class="text-xs text-slate-400 bg-slate-800/50 p-3 rounded-lg border border-slate-800 mb-6">
+        <b>Pan:</b> Зажмите ЛКМ на фоне | <b>Zoom:</b> Колесо мыши | <b>Drag:</b> Перетаскивание блоков (Admin)
       </div>
-    </section>
-
-    <!-- Управление Командами -->
-    <section class="bg-slate-800 border border-slate-700/60 rounded-xl p-5 shadow-lg">
-      <h2 class="text-xl font-bold mb-4 text-cyan-300">Управление Командами</h2>
-      <div class="flex flex-col gap-3">
-        <div class="flex gap-2">
-          <input type="text" placeholder="Название команды" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm w-full text-slate-100 placeholder-slate-500">
-          <input type="text" placeholder="Тег (3-4 символа)" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm w-28 text-slate-100 placeholder-slate-500">
-        </div>
-        <select class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300">
-          <option>Выберите Капитана...</option>
-        </select>
-        <button class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm self-start">Создать Команду</button>
+      <div id="bracketContainer" class="bg-slate-800/40 border border-slate-800 rounded-xl p-8 min-h-[300px] flex items-center justify-center text-slate-500">
+        Выберите турнир для отображения сетки
       </div>
-    </section>
+    </div>
 
-    <!-- Создание Турнира -->
-    <section class="bg-slate-800 border border-slate-700/60 rounded-xl p-5 shadow-lg col-span-1 md:col-span-2">
-      <h2 class="text-xl font-bold mb-4 text-cyan-300">Создание Турнира</h2>
-      <div class="flex flex-wrap gap-3 mb-4">
-        <input type="text" placeholder="Игра (например, CS2 / Dota)" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 flex-1 min-w-[200px]">
-        <select class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300">
-          <option>4 Команды</option>
-          <option>8 Команд</option>
-        </select>
-        <select class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300">
-          <option>Bo1</option>
-          <option>Bo3</option>
-        </select>
-        <select class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300">
-          <option>Порядок Банов: ABAB</option>
-        </select>
-      </div>
-      <button class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm">Создать Турнир</button>
-    </section>
+    <!-- Вкладка 2: Карты (Только для Админа) -->
+    <div id="tab-maps" class="tab-content hidden">
+      <section class="admin-only hidden bg-slate-800 border border-slate-700/60 rounded-xl p-5 mb-6">
+        <h2 class="text-xl font-bold mb-4 text-cyan-300">Управление Картами</h2>
+        <form id="addMapForm" class="flex flex-col sm:flex-row gap-2">
+          <input type="text" id="mapName" placeholder="Название карты" required class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm w-full">
+          <input type="url" id="mapUrl" placeholder="URL Картинки" required class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm w-full">
+          <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm shrink-0">Добавить</button>
+        </form>
+      </section>
+      <div id="mapsList" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+    </div>
 
-    <!-- Авторизация -->
-    <section class="bg-slate-800 border border-slate-700/60 rounded-xl p-5 shadow-lg col-span-1 md:col-span-2">
-      <h2 class="text-xl font-bold mb-4 text-cyan-300">Авторизация</h2>
-      <div class="flex flex-wrap gap-3">
-        <input type="text" placeholder="Логин" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 flex-1 min-w-[150px]">
-        <input type="password" placeholder="Пароль" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 flex-1 min-w-[150px]">
-        <select class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300">
-          <option>Зритель (Viewer)</option>
-          <option>Капитан</option>
-          <option>Админ</option>
-        </select>
-        <button class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm">Войти / Зарегистрироваться</button>
-      </div>
-    </section>
+    <!-- Вкладка 3: Команды (Только для Админа/Капитана) -->
+    <div id="tab-teams" class="tab-content hidden">
+      <section class="admin-only hidden bg-slate-800 border border-slate-700/60 rounded-xl p-5 mb-6">
+        <h2 class="text-xl font-bold mb-4 text-cyan-300">Управление Командами</h2>
+        <form id="createTeamForm" class="flex flex-col gap-3">
+          <div class="flex gap-2">
+            <input type="text" id="teamName" placeholder="Название команды" required class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm w-full">
+            <input type="text" id="teamTag" placeholder="Тег" required class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm w-28">
+          </div>
+          <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm self-start">Создать Команду</button>
+        </form>
+      </section>
+      <div id="teamsList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
+
+    <!-- Вкладка 4: Турниры (Админ) -->
+    <div id="tab-tournaments" class="tab-content hidden">
+      <section class="admin-only hidden bg-slate-800 border border-slate-700/60 rounded-xl p-5 mb-6">
+        <h2 class="text-xl font-bold mb-4 text-cyan-300">Создание Турнира</h2>
+        <form id="createTournamentForm" class="flex flex-wrap gap-3">
+          <input type="text" id="tournamentName" placeholder="Название (например, CS2 Cup)" required class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm flex-1 min-w-[200px]">
+          <select id="teamCount" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+            <option value="4">4 Команды</option>
+            <option value="8">8 Команд</option>
+          </select>
+          <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm">Создать Турнир</button>
+        </form>
+      </section>
+    </div>
 
   </main>
 
+  <!-- Модальное окно Авторизации -->
+  <div id="authModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center hidden p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 w-full max-w-md relative">
+      <button id="closeAuthBtn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-100">&times;</button>
+      <h2 class="text-xl font-bold mb-4 text-cyan-300">Авторизация</h2>
+      <form id="loginForm" class="flex flex-col gap-3">
+        <input type="text" id="loginUsername" placeholder="Логин" required class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+        <input type="password" id="loginPassword" placeholder="Пароль" required class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+        <select id="loginRole" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+          <option value="viewer">Зритель (Viewer)</option>
+          <option value="captain">Капитан</option>
+          <option value="admin">Админ</option>
+        </select>
+        <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm mt-2">Войти</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Подключаем твой клиентский скрипт -->
+  <script src="script.js"></script>
 </body>
 </html>
