@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CyberArena Tournament System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+  
+  <!-- Navbar -->
+  <header class="navbar flex items-center justify-between px-6 py-4 bg-slate-800 border-b border-slate-700">
+    <div class="flex items-center gap-4">
+      <h1 class="text-2xl font-bold text-cyan-400">CYBERGRID</h1>
+      <select id="tournamentSelect" class="bg-slate-900 border border-slate-700 rounded px-3 py-1 text-sm text-cyan-300">
+        <option value="">Выберите турнир...</option>
+      </select>
+    </div>
+    <div id="authBlock" class="flex items-center gap-3">
+      <!-- Auth buttons dynamically rendered -->
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav id="adminTabs" class="hidden bg-slate-800/50 border-b border-slate-700 px-6 py-2 flex gap-4 text-sm">
+    <button onclick="switchTab('grid')" class="tab-btn active text-cyan-400 font-semibold">Сетка Турнира</button>
+    <button onclick="switchTab('maps')" class="tab-btn text-slate-400 hover:text-slate-200">Карты</button>
+    <button onclick="switchTab('teams')" class="tab-btn text-slate-400 hover:text-slate-200">Команды</button>
+    <button onclick="switchTab('tournaments')" class="tab-btn text-slate-400 hover:text-slate-200">Турниры</button>
+  </nav>
+
+  <!-- Main View -->
+  <main class="flex-1 relative overflow-hidden">
+    
+    <!-- Tab 1: Interactive Canvas Grid -->
+    <section id="tab-grid" class="tab-content absolute inset-0 w-full h-full bg-slate-950">
+      <div id="viewport" class="w-full h-full cursor-grab active:cursor-grabbing relative overflow-hidden">
+        <svg id="svgLines" class="absolute top-0 left-0 w-full h-full pointer-events-none z-0"></svg>
+        <div id="bracketCanvas" class="absolute top-0 left-0 transform-gpu origin-top-left z-10"></div>
+      </div>
+      <div class="absolute bottom-4 right-4 bg-slate-800/80 backdrop-blur border border-slate-700 rounded-lg p-2 text-xs text-slate-400">
+        Pan: Зажмите ЛКМ на фоне | Zoom: Колесо мыши | Drag: Перетаскивание блоков (Admin)
+      </div>
+    </section>
+
+    <!-- Tab 2: Admin Maps -->
+    <section id="tab-maps" class="tab-content hidden p-6 max-w-5xl mx-auto">
+      <h2 class="text-xl font-bold text-cyan-400 mb-4">Управление Картами</h2>
+      <form id="addMapForm" class="flex gap-4 mb-6 bg-slate-800 p-4 rounded-lg border border-slate-700">
+        <input type="text" id="mapName" placeholder="Название карты" required class="bg-slate-900 border border-slate-700 rounded px-3 py-2 flex-1">
+        <input type="url" id="mapUrl" placeholder="URL Картинки" required class="bg-slate-900 border border-slate-700 rounded px-3 py-2 flex-1">
+        <button type="submit" class="btn-cyan">Добавить</button>
+      </form>
+      <div id="mapsList" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+    </section>
+
+    <!-- Tab 3: Admin Teams -->
+    <section id="tab-teams" class="tab-content hidden p-6 max-w-5xl mx-auto">
+      <h2 class="text-xl font-bold text-cyan-400 mb-4">Управление Командами</h2>
+      <form id="addTeamForm" class="bg-slate-800 p-4 rounded-lg border border-slate-700 mb-6 space-y-4">
+        <div class="flex gap-4">
+          <input type="text" id="teamName" placeholder="Название команды" required class="bg-slate-900 border border-slate-700 rounded px-3 py-2 flex-1">
+          <input type="text" id="teamTag" placeholder="Тег (3-4 символа)" required class="bg-slate-900 border border-slate-700 rounded px-3 py-2 w-32">
+        </div>
+        <div class="flex gap-4">
+          <select id="captainSelect" class="bg-slate-900 border border-slate-700 rounded px-3 py-2 flex-1 text-slate-300">
+            <option value="">Выберите Капитана...</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-cyan">Создать Команду</button>
+      </form>
+      <div id="teamsList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </section>
+
+    <!-- Tab 4: Admin Tournaments -->
+    <section id="tab-tournaments" class="tab-content hidden p-6 max-w-5xl mx-auto">
+      <h2 class="text-xl font-bold text-cyan-400 mb-4">Создание Турнира</h2>
+      <form id="addTournamentForm" class="bg-slate-800 p-4 rounded-lg border border-slate-700 mb-6 space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <input type="text" id="tournGame" placeholder="Игра (например, CS2 / Dota 2)" required class="bg-slate-900 border border-slate-700 rounded px-3 py-2">
+          <select id="tournSize" class="bg-slate-900 border border-slate-700 rounded px-3 py-2">
+            <option value="4">4 Команды</option>
+            <option value="8">8 Команд</option>
+            <option value="16">16 Команд</option>
+            <option value="32">32 Команды</option>
+          </select>
+          <select id="tournFormat" class="bg-slate-900 border border-slate-700 rounded px-3 py-2">
+            <option value="Bo1">Bo1</option>
+            <option value="Bo3">Bo3</option>
+            <option value="Bo5">Bo5</option>
+          </select>
+          <select id="tournBanOrder" class="bg-slate-900 border border-slate-700 rounded px-3 py-2">
+            <option value="ABAB">Порядок Банов: ABAB</option>
+            <option value="ABBA">Порядок Банов: ABBA</option>
+            <option value="random">Случайный</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-2">Выберите карты для маппула:</label>
+          <div id="tournamentMapsSelect" class="grid grid-cols-3 gap-2"></div>
+        </div>
+        <button type="submit" class="btn-cyan">Создать Турнир</button>
+      </form>
+      <div id="tournamentsList" class="space-y-3"></div>
+    </section>
+
+  </main>
+
+  <!-- Modal: Map Draft -->
+  <div id="draftModal" class="fixed inset-0 bg-black/80 backdrop-blur hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 max-w-3xl w-full relative">
+      <button onclick="closeDraftModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
+      <h3 class="text-xl font-bold text-cyan-400 mb-2" id="draftTitle">Драфт Карт Матча</h3>
+      <div id="draftStatus" class="text-sm text-slate-300 mb-4 pb-2 border-b border-slate-700"></div>
+      
+      <div id="mapsDraftGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4"></div>
+      <div id="bannedLogs" class="bg-slate-900 p-3 rounded text-xs space-y-1 max-h-32 overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <!-- Modal: Auth -->
+  <div id="authModal" class="fixed inset-0 bg-black/80 backdrop-blur hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 max-w-sm w-full relative">
+      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
+      <h3 class="text-xl font-bold text-cyan-400 mb-4" id="authTitle">Авторизация</h3>
+      <form id="authForm" class="space-y-4">
+        <input type="text" id="authUsername" placeholder="Логин" required class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2">
+        <input type="password" id="authPassword" placeholder="Пароль" required class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2">
+        <select id="authRole" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2">
+          <option value="viewer">Зритель (Viewer)</option>
+          <option value="captain">Капитан (Captain)</option>
+          <option value="member">Игрок (Member)</option>
+        </select>
+        <button type="submit" class="btn-cyan w-full">Войти / Зарегистрироваться</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

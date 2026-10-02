@@ -1,0 +1,76 @@
+/* Custom Utility Styles & Modern Dark UI */
+body {
+  margin: 0;
+  user-select: none;
+}
+
+.btn-cyan {
+  background-color: #06b6d4;
+  color: #0f172a;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-cyan:hover {
+  background-color: #22d3ee;
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.4);
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  border-color: #22d3ee;
+}
+
+.match-card {
+  width: 220px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  position: absolute;
+  transition: border-color 0.2s;
+}
+
+.match-card:hover {
+  border-color: #22d3ee;
+}
+
+.match-card.winner-1 .team-1,
+.match-card.winner-2 .team-2 {
+  color: #22d3ee;
+  font-weight: bold;
+  background: rgba(34, 211, 238, 0.1);
+}
+
+.map-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 2px solid #334155;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.map-card.banned {
+  filter: grayscale(1);
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: #ef4444;
+}
+
+.map-card:hover:not(.banned) {
+  border-color: #22d3ee;
+  transform: scale(1.02);
+}
