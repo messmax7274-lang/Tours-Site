@@ -3,47 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CYBERGRID - Маппул</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="style.css">
+  <title>Карты — AETHER</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col p-6">
+<body>
 
-  <header class="max-w-6xl w-full mx-auto flex justify-between items-center pb-6 border-b border-slate-800">
-    <a href="/" class="text-3xl font-extrabold text-cyan-400">CYBERGRID</a>
-    <a href="/login.html" class="bg-cyan-500 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm">Войти</a>
+  <header>
+    <div class="logo">AETHER</div>
+    <nav>
+      <a href="/">Главная</a>
+      <a href="/teams.html">Команды</a>
+      <a href="/maps.html" class="active">Карты</a>
+      <a href="/login.html">Войти</a>
+    </nav>
   </header>
 
-  <nav class="max-w-6xl w-full mx-auto my-6 flex gap-6 border-b border-slate-800 text-sm font-medium pb-2">
-    <a href="/" class="text-slate-400 hover:text-slate-200">Сетка Турнира</a>
-    <a href="/teams.html" class="text-slate-400 hover:text-slate-200">Команды</a>
-    <a href="/maps.html" class="text-cyan-400 font-bold border-b-2 border-cyan-400 pb-2">Карты</a>
-    <a href="/admin.html" class="text-slate-400 hover:text-slate-200">Панель Управления</a>
-  </nav>
-
-  <main class="max-w-6xl w-full mx-auto flex-1">
-    <section class="bg-slate-800 border border-slate-700/60 rounded-xl p-5 mb-8">
-      <h2 class="text-lg font-bold mb-4 text-cyan-300">Добавить карту (Админ)</h2>
-      <form action="/api/maps" method="POST" class="flex flex-col sm:flex-row gap-3">
-        <input type="text" name="name" placeholder="Название карты (Mirage)" required class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm flex-1">
-        <input type="text" name="image_url" placeholder="URL Картинки" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm flex-1">
-        <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm shrink-0">Добавить</button>
-      </form>
-    </section>
-
-    <h2 class="text-xl font-bold mb-4 text-slate-200">Список Карт</h2>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-slate-800 rounded-xl border border-slate-700 p-4 text-center font-bold">
-        Mirage
-      </div>
-      <div class="bg-slate-800 rounded-xl border border-slate-700 p-4 text-center font-bold">
-        Inferno
-      </div>
-      <div class="bg-slate-800 rounded-xl border border-slate-700 p-4 text-center font-bold">
-        Nuke
-      </div>
+  <div class="container">
+    <div class="hero">
+      <h1>Маппул Турнира</h1>
+      <p>Доступные карты для пиков и банов</p>
     </div>
-  </main>
 
+    <div id="mapsList" class="grid">
+      <p class="empty-msg">Загрузка карт...</p>
+    </div>
+  </div>
+
+  <script>
+    async function loadMaps() {
+      const container = document.getElementById('mapsList');
+      try {
+        const res = await fetch('/api/maps');
+        const maps = await res.json();
+
+        if (!maps || maps.length === 0) {
+          container.innerHTML = '<p class="empty-msg">Карты еще не добавлены.</p>';
+          return;
+        }
+
+        container.innerHTML = maps.map(map => `
+          <div class="card">
+            <h3>${map.name}</h3>
+            ${map.image_url ? `<img src="${map.image_url}" alt="${map.name}" style="width:100%; border-radius:4px; margin-top:0.5rem;">` : ''}
+          </div>
+        `).join('');
+      } catch (err) {
+        container.innerHTML = '<p class="empty-msg">Ошибка при загрузке карт.</p>';
+      }
+    }
+
+    loadMaps();
+  </script>
 </body>
 </html>
