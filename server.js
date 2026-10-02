@@ -9,8 +9,8 @@ const db = new Database('tournament.db');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Раздача статических файлов из текущей директории
-app.use(express.static(__dirname));
+// Указываем Express раздавать ВСЕ статические файлы из папки PUBLIC
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Инициализация базы данных
 db.exec(`
@@ -54,7 +54,6 @@ app.post('/api/login', (req, res) => {
     user = { id: info.lastInsertRowid, username, role: role || 'viewer' };
   }
 
-  // Редирект в зависимости от роли
   if (user.role === 'admin') {
     res.redirect('/admin.html');
   } else if (user.role === 'captain') {
@@ -65,8 +64,6 @@ app.post('/api/login', (req, res) => {
 });
 
 // --- API ЭНДПОИНТЫ ---
-
-// Получить и создать команды
 app.get('/api/teams', (req, res) => {
   const teams = db.prepare('SELECT * FROM teams').all();
   res.json(teams);
@@ -78,7 +75,6 @@ app.post('/api/teams', (req, res) => {
   res.redirect('/teams.html');
 });
 
-// Получить и создать карты
 app.get('/api/maps', (req, res) => {
   const maps = db.prepare('SELECT * FROM maps').all();
   res.json(maps);
@@ -90,24 +86,17 @@ app.post('/api/maps', (req, res) => {
   res.redirect('/maps.html');
 });
 
-// Создание турнира
 app.post('/api/tournaments', (req, res) => {
   const { name, team_count } = req.body;
   db.prepare('INSERT INTO tournaments (name, team_count) VALUES (?, ?)').run(name, team_count);
   res.redirect('/admin.html');
 });
 
-// Главная страница
+// Главный маршрут — явно отдает index.html ИЗ ПАПКИ PUBLIC
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Запуск сервера
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
