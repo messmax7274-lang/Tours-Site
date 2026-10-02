@@ -485,3 +485,115 @@ function updateUIForRole(user) {
     document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
   }
 }
+
+// Хранение состояния текущего пользователя
+let currentUser = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  initTabs();
+  initAuthModal();
+  initForms();
+  updateUI();
+});
+
+// 1. Логика переключения вкладок
+function initTabs() {
+  const tabs = document.querySelectorAll('.nav-tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Снимаем выделение со всех вкладок
+      tabs.forEach(t => {
+        t.classList.remove('border-b-2', 'border-cyan-400', 'text-cyan-400');
+        t.classList.add('text-slate-400');
+      });
+
+      // Активируем текущую вкладку
+      tab.classList.add('border-b-2', 'border-cyan-400', 'text-cyan-400');
+      tab.classList.remove('text-slate-400');
+
+      // Прячем все контейнеры и показываем нужный
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+      const targetTab = tab.getAttribute('data-tab');
+      const targetContent = document.getElementById(`tab-${targetTab}`);
+      if (targetContent) {
+        targetContent.classList.remove('hidden');
+      }
+    });
+  });
+}
+
+// 2. Открытие и закрытие модального окна авторизации
+function initAuthModal() {
+  const openBtn = document.getElementById('openAuthBtn');
+  const closeBtn = document.getElementById('closeAuthBtn');
+  const modal = document.getElementById('authModal');
+
+  if (openBtn && modal) {
+    openBtn.addEventListener('click', () => {
+      if (currentUser) {
+        // Если уже вошли — кнопка работает как "Выйти"
+        currentUser = null;
+        updateUI();
+      } else {
+        modal.classList.remove('hidden');
+      }
+    });
+  }
+
+  if (closeBtn && modal) {
+    closeBtn.addEventListener('click', () => {
+      modal.classList.add('hidden');
+    });
+  }
+
+  // Закрытие при клике на темный фон вне окна
+  window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.add('hidden');
+    }
+  });
+}
+
+// 3. Обработка отправки форм
+function initForms() {
+  const loginForm = document.getElementById('loginForm');
+  if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('loginUsername').value;
+      const role = document.getElementById('loginRole').value;
+
+      currentUser = { username, role };
+
+      document.getElementById('authModal').classList.add('hidden');
+      loginForm.reset();
+      updateUI();
+    });
+  }
+}
+
+// 4. Обновление видимости UI в зависимости от авторизации и роли
+function updateUI() {
+  const openBtn = document.getElementById('openAuthBtn');
+  const userInfo = document.getElementById('userInfo');
+  const adminElements = document.querySelectorAll('.admin-only');
+
+  if (currentUser) {
+    if (openBtn) openBtn.textContent = 'Выйти';
+    if (userInfo) {
+      userInfo.textContent = `${currentUser.username} (${currentUser.role})`;
+      userInfo.classList.remove('hidden');
+    }
+
+    // Показываем админку только админам
+    if (currentUser.role === 'admin') {
+      adminElements.forEach(el => el.classList.remove('hidden'));
+    } else {
+      adminElements.forEach(el => el.classList.add('hidden'));
+    }
+  } else {
+    if (openBtn) openBtn.textContent = 'Войти / Регистрация';
+    if (userInfo) userInfo.classList.add('hidden');
+    adminElements.forEach(el => el.classList.add('hidden'));
+  }
+}
