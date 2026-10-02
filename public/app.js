@@ -457,3 +457,31 @@ async function generateGrid(id) {
   switchTab('grid');
   loadBracket();
 }
+
+// 1. Переключение вкладок
+document.querySelectorAll('.nav-tab').forEach(button => {
+  button.addEventListener('click', () => {
+    // Снимаем активный класс со всех
+    document.querySelectorAll('.nav-tab').forEach(b => {
+      b.classList.remove('border-b-2', 'border-cyan-400', 'text-cyan-400');
+      b.classList.add('text-slate-400');
+    });
+    // Активируем нажатую
+    button.classList.add('border-b-2', 'border-cyan-400', 'text-cyan-400');
+    button.classList.remove('text-slate-400');
+
+    // Прячем весь контент и показываем нужный
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+    const tabId = button.getAttribute('data-tab');
+    document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+  });
+});
+
+// 2. Показ админских блоков только после входа с ролью 'admin'
+function updateUIForRole(user) {
+  if (user && user.role === 'admin') {
+    document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+  } else {
+    document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+  }
+}
