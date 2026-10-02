@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>CYBERGRID - Админка</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans p-6">
+
+  <header class="max-w-6xl w-full mx-auto flex justify-between items-center pb-6 border-b border-slate-800">
+    <a href="/" class="text-3xl font-extrabold text-cyan-400">CYBERGRID</a>
+    <a href="/" class="text-sm text-slate-400 hover:text-slate-200">Выйти</a>
+  </header>
+
+  <nav class="max-w-6xl w-full mx-auto my-6 flex gap-4 border-b border-slate-800 text-sm font-medium pb-2">
+    <a href="/" class="text-slate-400 hover:text-slate-200">Сетка Турнира</a>
+    <a href="/teams.html" class="text-slate-400 hover:text-slate-200">Команды</a>
+    <a href="/maps.html" class="text-slate-400 hover:text-slate-200">Карты</a>
+    <a href="/admin.html" class="text-cyan-400 font-bold border-b-2 border-cyan-400 pb-2">Панель Управления</a>
+  </nav>
+
+  <main class="max-w-6xl w-full mx-auto grid gap-6">
+    <section class="bg-slate-800 border border-slate-700/60 rounded-xl p-6">
+      <h2 class="text-xl font-bold mb-4 text-cyan-300">Создание Турнира</h2>
+      <form class="flex flex-wrap gap-3">
+        <input type="text" placeholder="Название турнира" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm flex-1">
+        <button type="submit" class="bg-cyan-500 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm">Создать</button>
+      </form>
+    </section>
+  </main>
+
+</body>
+</html>
