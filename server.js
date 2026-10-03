@@ -8,7 +8,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Настройка сессий (убирает ворнинг MemoryStore)
 app.use(session({
   store: new FileStore({
     path: './sessions',
@@ -21,13 +20,15 @@ app.use(session({
   cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// База данных в памяти
-let users = [];
+// Базовые пользователи (Главный админ сразу в системе)
+let users = [
+  { id: 1, username: 'admin', password: 'Chuvak_Lif3', role: 'admin' }
+];
+
 let teams = [];
 let maps = [];
 let tournaments = [];
 
-// Middlewares безопасности
 function requireAdmin(req, res, next) {
   if (req.session && req.session.user && req.session.user.role === 'admin') {
     return next();
@@ -42,22 +43,27 @@ function requireAuth(req, res, next) {
   return res.status(401).redirect('/login.html');
 }
 
-// Защита прямого перехода на admin.html
 app.get('/admin.html', requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// Раздача публичных статичных файлов
 app.use(express.static(path.join(__dirname, 'public')));
 
 // AUTH API
 app.post('/api/login', (req, res) => {
-  const { username, password, role } = req.body;
+  const { username, password } = req.body;
   if (!username || !password) return res.status(400).send('Заполните все поля');
 
   let user = users.find(u => u.username === username);
-  if (!user) {
-    user = { id: Date.now(), username, role: role || 'viewer' };
+
+  if (user) {
+    // Проверка пароля для существующего пользователя
+    if (user.password && user.password !== password) {
+      return res.status(401).send('Неверный пароль');
+    }
+  } else {
+    // Автоматическая регистрация нового пользователя КАК ЗРИТЕЛЬ
+    user = { id: Date.now(), username, password, role: 'viewer' };
     users.push(user);
   }
 
@@ -79,6 +85,20 @@ app.get('/api/logout', (req, res) => {
 
 app.get('/api/me', (req, res) => {
   res.json(req.session.user || null);
+});
+
+// Управление ролями (Только для Админа)
+app.get('/api/users', requireAdmin, (req, res) => {
+  res.json(users.map(u => ({ id: u.id, username: u.username, role: u.role })));
+});
+
+app.post('/api/users/role', requireAdmin, (req, res) => {
+  const { userId, role } = req.body;
+  const user = users.find(u => u.id == userId);
+  if (user) {
+    user.role = role;
+  }
+  res.redirect('/admin.html');
 });
 
 // TEAMS API
