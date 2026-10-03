@@ -8,6 +8,11 @@
 </head>
 <body>
 
+  <div id="globalAnnouncement">
+    <span id="announcementText">🔴 ТУРНИР НАЧАЛСЯ!</span>
+    <a id="announcementLink" href="#" target="_blank">Смотреть на Twitch 🎬</a>
+  </div>
+
   <header>
     <a href="/" class="logo">AETHER</a>
     <nav id="navMenu">
@@ -21,38 +26,34 @@
   <div class="container">
     <div class="hero">
       <h1>Турнирная Платформа AETHER</h1>
-      <p>Управление командами, маппулом и турнирной сеткой</p>
+      <p>Активные турниры, сетки и трансляции</p>
     </div>
 
-    <div class="grid">
-      <div class="card">
-        <div>
-          <h3>Авторизация</h3>
-          <p>Вход для капитанов и администраторов турнира.</p>
-        </div>
-        <a href="/login.html" class="btn">Перейти к входу</a>
-      </div>
+    <h2>🏆 Активные и Предстоящие Турниры</h2>
+    <br>
 
-      <div class="card">
-        <div>
-          <h3>Команды</h3>
-          <p>Просмотр участников и регистрация новых команд.</p>
-        </div>
-        <a href="/teams.html" class="btn">Список команд</a>
-      </div>
-
-      <div class="card">
-        <div>
-          <h3>Маппул</h3>
-          <p>Список карт, доступных для турнира.</p>
-        </div>
-        <a href="/maps.html" class="btn">Список карт</a>
-      </div>
+    <div id="tournamentsView" class="grid">
+      <p class="empty-msg">Загрузка турниров...</p>
     </div>
   </div>
 
   <script>
-    async function updateNav() {
+    async function checkAnnouncement() {
+      try {
+        const res = await fetch('/api/announcement');
+        const data = await res.json();
+        if (data) {
+          const banner = document.getElementById('globalAnnouncement');
+          document.getElementById('announcementText').innerText = `🚨 ТУРНИР "${data.tournamentName.toUpperCase()}" НАЧАЛСЯ!`;
+          document.getElementById('announcementLink').href = data.twitchUrl;
+          banner.style.display = 'flex';
+        }
+      } catch (e) {}
+    }
+
+    async function init() {
+      checkAnnouncement();
+
       try {
         const res = await fetch('/api/me');
         const user = await res.json();
@@ -70,8 +71,63 @@
           `;
         }
       } catch (e) {}
+
+      const container = document.getElementById('tournamentsView');
+      try {
+        const res = await fetch('/api/tournaments');
+        const tournaments = await res.json();
+
+        if (!tournaments || tournaments.length === 0) {
+          container.innerHTML = '<p class="empty-msg">Активных турниров пока нет.</p>';
+          return;
+        }
+
+        container.innerHTML = tournaments.map(t => `
+          <div class="card" style="grid-column: 1 / -1;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <h3>${t.name} <span style="font-size:0.85rem; color:#45a29e;">(${t.game})</span></h3>
+                <p>Формат: <strong>${t.format}</strong> | Сервер: <strong>${t.region}</strong> | Команд: <strong>${t.team_count}</strong></p>
+                <p>Призовой фонд: <strong>${t.prize_pool}</strong> | Старт: <strong>${new Date(t.start_time).toLocaleString('ru')}</strong></p>
+                <p>Маппул: <strong>${t.map_pool && t.map_pool.length ? t.map_pool.join(', ') : 'Все карты'}</strong></p>
+                <p>Спонсоры: <strong>${t.sponsors}</strong></p>
+              </div>
+              <div style="text-align:right;">
+                <a href="${t.twitch_url}" target="_blank" class="btn" style="width:auto; background:#9146ff; color:#fff; display:inline-block; margin-bottom:8px;">Трансляция Twitch 📺</a>
+                <div>Статус: <strong style="color:${t.status === 'active' ? '#ff4655' : '#66fcf1'};">${t.status === 'active' ? '🔴 LIVE' : (t.status === 'finished' ? '🏁 Завершен' : '⏳ Анонсирован')}</strong></div>
+              </div>
+            </div>
+
+            <hr style="border-color:#45a29e; margin: 1rem 0;">
+
+            <h4>Турнирная Сетка</h4>
+            <div class="bracket">
+              <div class="bracket-round">
+                <h4>Раунд 1</h4>
+                ${t.matches ? t.matches.map(m => `
+                  <div class="match-box">
+                    <div class="match-team"><span>${m.team1}</span> <span>0</span></div>
+                    <div style="border-bottom: 1px solid #333;"></div>
+                    <div class="match-team"><span>${m.team2}</span> <span>0</span></div>
+                  </div>
+                `).join('') : ''}
+              </div>
+              <div class="bracket-round">
+                <h4>Полуфинал</h4>
+                <div class="match-box"><div class="match-team">TBD</div><div class="match-team">TBD</div></div>
+                <div class="match-box"><div class="match-team">TBD</div><div class="match-team">TBD</div></div>
+              </div>
+              <div class="bracket-round">
+                <h4>Финал</h4>
+                <div class="match-box"><div class="match-team">TBD</div><div class="match-team">TBD</div></div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {}
     }
-    updateNav();
+
+    init();
   </script>
 </body>
 </html>
