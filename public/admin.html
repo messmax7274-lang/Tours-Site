@@ -22,9 +22,21 @@
   <div class="container">
     <div class="hero">
       <h1>Панель Администратора</h1>
-      <p>Управление турнирами</p>
+      <p>Управление ролями и турнирами</p>
     </div>
 
+    <!-- УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ -->
+    <div style="margin-bottom: 2rem;">
+      <div class="card">
+        <h3>Назначение ролей пользователям</h3>
+        <br>
+        <div id="usersList">
+          <p class="empty-msg">Загрузка пользователей...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- СОЗДАНИЕ ТУРНИРА -->
     <div style="margin-bottom: 2rem;">
       <form action="/api/tournaments" method="POST" class="card">
         <h3>Создать новый турнир</h3>
@@ -74,6 +86,27 @@
         return;
       }
 
+      // Загрузка юзеров для управления ролями
+      try {
+        const resUsers = await fetch('/api/users');
+        const users = await resUsers.json();
+        const usersList = document.getElementById('usersList');
+
+        usersList.innerHTML = users.map(u => `
+          <form action="/api/users/role" method="POST" style="display:flex; gap:10px; align-items:center; margin-bottom:10px; background:#0b0c10; padding:10px; border-radius:4px;">
+            <input type="hidden" name="userId" value="${u.id}">
+            <strong style="width:150px; color:#fff;">${u.username}</strong>
+            <select name="role" style="padding:5px; background:#1f2833; color:#fff; border:1px solid #45a29e;">
+              <option value="viewer" ${u.role === 'viewer' ? 'selected' : ''}>Зритель</option>
+              <option value="captain" ${u.role === 'captain' ? 'selected' : ''}>Капитан</option>
+              <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Админ</option>
+            </select>
+            <button type="submit" class="btn" style="width:auto; padding:5px 15px;">Сохранить</button>
+          </form>
+        `).join('');
+      } catch (e) {}
+
+      // Загрузка турниров
       const container = document.getElementById('tournamentsList');
       try {
         const res = await fetch('/api/tournaments');
