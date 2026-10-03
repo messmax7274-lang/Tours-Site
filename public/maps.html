@@ -9,11 +9,12 @@
 <body>
 
   <header>
-    <div class="logo">AETHER</div>
+    <a href="/" class="logo">AETHER</a>
     <nav>
       <a href="/">Главная</a>
       <a href="/teams.html">Команды</a>
       <a href="/maps.html" class="active">Карты</a>
+      <a href="/admin.html">Админка</a>
       <a href="/login.html">Войти</a>
     </nav>
   </header>
@@ -21,7 +22,23 @@
   <div class="container">
     <div class="hero">
       <h1>Маппул Турнира</h1>
-      <p>Доступные карты для пиков и банов</p>
+      <p>Карты для проведения матчей</p>
+    </div>
+
+    <div style="margin-bottom: 2rem;">
+      <form action="/api/maps" method="POST" class="card" style="margin-bottom: 2rem;">
+        <h3>Добавить карту</h3>
+        <br>
+        <div class="form-group">
+          <label>Название карты</label>
+          <input type="text" name="name" required placeholder="Например: Dust II">
+        </div>
+        <div class="form-group">
+          <label>Ссылка на картинку (URL)</label>
+          <input type="text" name="image_url" placeholder="https://example.com/image.jpg">
+        </div>
+        <button type="submit" class="btn">Добавить карту</button>
+      </form>
     </div>
 
     <div id="mapsList" class="grid">
