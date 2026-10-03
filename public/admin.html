@@ -8,6 +8,11 @@
 </head>
 <body>
 
+  <div id="globalAnnouncement">
+    <span id="announcementText">🔴 ТУРНИР НАЧАЛСЯ!</span>
+    <a id="announcementLink" href="#" target="_blank">Смотреть на Twitch 🎬</a>
+  </div>
+
   <header>
     <a href="/" class="logo">AETHER</a>
     <nav id="navMenu">
@@ -22,13 +27,116 @@
   <div class="container">
     <div class="hero">
       <h1>Панель Администратора</h1>
-      <p>Управление ролями и турнирами</p>
+      <p>Конструктор турниров, управление сетками и правами</p>
+    </div>
+
+    <!-- ДЕТАЛЬНЫЙ КОНСТРУКТОР ТУРНИРА -->
+    <div style="margin-bottom: 2.5rem;">
+      <form action="/api/tournaments" method="POST" class="card">
+        <h3>⚙️ Конструктор нового турнира</h3>
+        <br>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Название турнира</label>
+            <input type="text" name="name" required placeholder="AETHER Masters 2026">
+          </div>
+          <div class="form-group">
+            <label>Дисциплина / Игра</label>
+            <select name="game" onchange="toggleCustomInput(this, 'customGameInput')">
+              <option value="Counter-Strike 2">Counter-Strike 2</option>
+              <option value="Dota 2">Dota 2</option>
+              <option value="Valorant">Valorant</option>
+              <option value="League of Legends">League of Legends</option>
+              <option value="custom">✍️ Свой вариант...</option>
+            </select>
+            <input type="text" name="custom_game" id="customGameInput" placeholder="Введите название игры" style="display:none; margin-top:5px;">
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Дата и время начала</label>
+            <input type="datetime-local" name="start_time" required>
+          </div>
+          <div class="form-group">
+            <label>Ссылка на Twitch трансляцию</label>
+            <input type="url" name="twitch_url" required placeholder="https://twitch.tv/вашканал">
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Формат турнира</label>
+            <select name="format" onchange="toggleCustomInput(this, 'customFormatInput')">
+              <option value="Single Elimination (BO1)">Single Elimination (BO1)</option>
+              <option value="Single Elimination (BO3)">Single Elimination (BO3)</option>
+              <option value="Double Elimination">Double Elimination</option>
+              <option value="Round Robin (Круговая)">Round Robin (Круговая)</option>
+              <option value="custom">✍️ Свой вариант...</option>
+            </select>
+            <input type="text" name="custom_format" id="customFormatInput" placeholder="Например: Swiss System 5 rounds" style="display:none; margin-top:5px;">
+          </div>
+
+          <div class="form-group">
+            <label>Количество участников</label>
+            <select name="team_count" onchange="toggleCustomInput(this, 'customTeamInput')">
+              <option value="4">4 Команды</option>
+              <option value="8" selected>8 Команд</option>
+              <option value="16">16 Команд</option>
+              <option value="32">32 Команды</option>
+              <option value="custom">✍️ Свой вариант...</option>
+            </select>
+            <input type="number" name="custom_team_count" id="customTeamInput" placeholder="Введите число участников" style="display:none; margin-top:5px;">
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Призовой фонд</label>
+            <input type="text" name="prize_pool" placeholder="Например: $10,000 / 100,000 руб. / Трофей">
+          </div>
+          <div class="form-group">
+            <label>Регион / Сервер</label>
+            <input type="text" name="region" placeholder="Европа / CIS / LAN / Онлайн">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Начальный статус</label>
+          <select name="status">
+            <option value="pending">⏳ Регистрация / Анонс</option>
+            <option value="active">🔴 LIVE (Сразу анонсировать и запустить)</option>
+            <option value="finished">🏁 Завершен</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Выберите карты для Маппула (Удерживайте Ctrl для выбора нескольких)</label>
+          <select name="map_pool" id="mapPoolSelect" multiple style="height:80px;">
+            <!-- Динамически заполнится списками карт -->
+          </select>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Спонсоры / Партнеры</label>
+            <input type="text" name="sponsors" placeholder="Например: AETHER, Red Bull, Logitech">
+          </div>
+          <div class="form-group">
+            <label>Краткие правила / Регламент</label>
+            <input type="text" name="rules" placeholder="Запрещены читы, паузы до 5 минут и т.д.">
+          </div>
+        </div>
+
+        <button type="submit" class="btn">🚀 Создать и опубликовать турнир</button>
+      </form>
     </div>
 
     <!-- УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ -->
-    <div style="margin-bottom: 2rem;">
+    <div style="margin-bottom: 2.5rem;">
       <div class="card">
-        <h3>Назначение ролей пользователям</h3>
+        <h3>👥 Назначение ролей пользователям</h3>
         <br>
         <div id="usersList">
           <p class="empty-msg">Загрузка пользователей...</p>
@@ -36,24 +144,7 @@
       </div>
     </div>
 
-    <!-- СОЗДАНИЕ ТУРНИРА -->
-    <div style="margin-bottom: 2rem;">
-      <form action="/api/tournaments" method="POST" class="card">
-        <h3>Создать новый турнир</h3>
-        <br>
-        <div class="form-group">
-          <label>Название турнира</label>
-          <input type="text" name="name" required placeholder="Например: AETHER Summer Cup">
-        </div>
-        <div class="form-group">
-          <label>Количество команд</label>
-          <input type="number" name="team_count" required value="8">
-        </div>
-        <button type="submit" class="btn">Создать турнир</button>
-      </form>
-    </div>
-
-    <h2>Активные турниры</h2>
+    <h2>Список Турниров и Управление Сетками</h2>
     <br>
     <div id="tournamentsList" class="grid">
       <p class="empty-msg">Загрузка турниров...</p>
@@ -61,7 +152,42 @@
   </div>
 
   <script>
+    function toggleCustomInput(select, inputId) {
+      const input = document.getElementById(inputId);
+      if (select.value === 'custom') {
+        input.style.display = 'block';
+        input.required = true;
+      } else {
+        input.style.display = 'none';
+        input.required = false;
+      }
+    }
+
+    async function checkAnnouncement() {
+      try {
+        const res = await fetch('/api/announcement');
+        const data = await res.json();
+        if (data) {
+          const banner = document.getElementById('globalAnnouncement');
+          document.getElementById('announcementText').innerText = `🚨 ТУРНИР "${data.tournamentName.toUpperCase()}" НАЧАЛСЯ!`;
+          document.getElementById('announcementLink').href = data.twitchUrl;
+          banner.style.display = 'flex';
+        }
+      } catch (e) {}
+    }
+
+    async function loadMapsForSelect() {
+      try {
+        const res = await fetch('/api/maps');
+        const maps = await res.json();
+        const select = document.getElementById('mapPoolSelect');
+        select.innerHTML = maps.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+      } catch (e) {}
+    }
+
     async function init() {
+      checkAnnouncement();
+      loadMapsForSelect();
       const nav = document.getElementById('navMenu');
 
       try {
@@ -86,7 +212,7 @@
         return;
       }
 
-      // Загрузка юзеров для управления ролями
+      // Юзеры
       try {
         const resUsers = await fetch('/api/users');
         const users = await resUsers.json();
@@ -106,7 +232,7 @@
         `).join('');
       } catch (e) {}
 
-      // Загрузка турниров
+      // Турниры
       const container = document.getElementById('tournamentsList');
       try {
         const res = await fetch('/api/tournaments');
@@ -118,9 +244,53 @@
         }
 
         container.innerHTML = tournaments.map(t => `
-          <div class="card">
-            <h3>${t.name}</h3>
-            <p>Команд в турнире: <strong>${t.team_count}</strong></p>
+          <div class="card" style="grid-column: 1 / -1;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <h3>${t.name} <span style="font-size:0.85rem; color:#45a29e;">[${t.game}]</span></h3>
+                <p>Формат: <strong>${t.format}</strong> | Команд: <strong>${t.team_count}</strong> | Регион: <strong>${t.region}</strong></p>
+                <p>Призовой фонд: <strong>${t.prize_pool}</strong> | Спонсоры: <strong>${t.sponsors}</strong></p>
+                <p>Маппул: <strong>${t.map_pool && t.map_pool.length ? t.map_pool.join(', ') : 'Не выбран'}</strong></p>
+                <p>Правила: <span style="color:#888;">${t.rules}</span></p>
+                <p>Twitch: <a href="${t.twitch_url}" target="_blank" style="color:#66fcf1;">${t.twitch_url}</a></p>
+              </div>
+
+              <div style="text-align:right;">
+                <form action="/api/tournaments/${t.id}/status" method="POST" style="display:flex; gap:5px;">
+                  <select name="status" style="padding:5px; background:#0b0c10; color:#fff; border:1px solid #45a29e;">
+                    <option value="pending" ${t.status === 'pending' ? 'selected' : ''}>⏳ Ожидание</option>
+                    <option value="active" ${t.status === 'active' ? 'selected' : ''}>🔴 LIVE (Запустить)</option>
+                    <option value="finished" ${t.status === 'finished' ? 'selected' : ''}>🏁 Завершен</option>
+                  </select>
+                  <button type="submit" class="btn" style="width:auto; padding:5px 10px;">Обновить статус</button>
+                </form>
+              </div>
+            </div>
+
+            <hr style="border-color:#45a29e; margin: 1rem 0;">
+
+            <h4>🏆 Турнирная Сетка (${t.matches ? t.matches.length : 0} матчей 1-го раунда)</h4>
+            <div class="bracket">
+              <div class="bracket-round">
+                <h4>Раунд 1</h4>
+                ${t.matches ? t.matches.map(m => `
+                  <div class="match-box">
+                    <div class="match-team"><span>${m.team1}</span> <span>0</span></div>
+                    <div style="border-bottom: 1px solid #333;"></div>
+                    <div class="match-team"><span>${m.team2}</span> <span>0</span></div>
+                  </div>
+                `).join('') : ''}
+              </div>
+              <div class="bracket-round">
+                <h4>Полуфинал</h4>
+                <div class="match-box"><div class="match-team">TBD</div><div class="match-team">TBD</div></div>
+                <div class="match-box"><div class="match-team">TBD</div><div class="match-team">TBD</div></div>
+              </div>
+              <div class="bracket-round">
+                <h4>Финал</h4>
+                <div class="match-box"><div class="match-team">TBD</div><div class="match-team">TBD</div></div>
+              </div>
+            </div>
           </div>
         `).join('');
       } catch (err) {
