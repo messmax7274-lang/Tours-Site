@@ -27,10 +27,10 @@
   <div class="container">
     <div class="hero">
       <h1>Панель Администратора</h1>
-      <p>Гибкая настройка турниров, результатов и ролей</p>
+      <p>Управление турнирами, картами и настройка матчей</p>
     </div>
 
-    <!-- ДЕТАЛЬНОЕ СОЗДАНИЕ ТУРНИРА С КАСТОМИЗАЦИЕЙ -->
+    <!-- ДЕТАЛЬНОЕ СОЗДАНИЕ ТУРНИРА -->
     <div style="margin-bottom: 2.5rem;">
       <form action="/api/tournaments" method="POST" class="card">
         <h3>⚙️ Детальное создание турнира</h3>
@@ -49,11 +49,10 @@
               <option value="Dota 2">Dota 2</option>
               <option value="Valorant">Valorant</option>
               <option value="Apex Legends">Apex Legends</option>
-              <option value="Rocket League">Rocket League</option>
               <option value="custom">✏️ Свой вариант...</option>
             </select>
             <div id="gameCustomBox" style="display:none; margin-top:5px;">
-              <input type="text" name="game_custom" placeholder="Укажите свою игру / категорию">
+              <input type="text" name="game_custom" placeholder="Укажите свою игру">
             </div>
           </div>
         </div>
@@ -76,12 +75,10 @@
               <option value="Single Elimination (BO1)">Single Elimination (BO1)</option>
               <option value="Single Elimination (BO3)">Single Elimination (BO3)</option>
               <option value="Double Elimination">Double Elimination</option>
-              <option value="Round Robin (Круговая)">Round Robin (Круговая)</option>
-              <option value="Swiss System (Швейцарка)">Swiss System (Швейцарка)</option>
               <option value="custom">✏️ Свой вариант...</option>
             </select>
             <div id="formatCustomBox" style="display:none; margin-top:5px;">
-              <input type="text" name="format_custom" placeholder="Например: Triple Elimination / Custom Playoff">
+              <input type="text" name="format_custom" placeholder="Свой формат">
             </div>
           </div>
 
@@ -91,11 +88,10 @@
               <option value="4">4 Команды</option>
               <option value="8" selected>8 Команд</option>
               <option value="16">16 Команд</option>
-              <option value="32">32 Команды</option>
               <option value="custom">✏️ Свой вариант...</option>
             </select>
             <div id="teamCountCustomBox" style="display:none; margin-top:5px;">
-              <input type="number" name="team_count_custom" placeholder="Введите число участников">
+              <input type="number" name="team_count_custom" placeholder="Число участников">
             </div>
           </div>
         </div>
@@ -103,17 +99,17 @@
         <div class="form-grid">
           <div class="form-group">
             <label>Общий призовой фонд</label>
-            <input type="text" name="prize_pool" placeholder="Например: $5,000 / 100,000 руб.">
+            <input type="text" name="prize_pool" placeholder="$5,000 / 100,000 руб.">
           </div>
           <div class="form-group">
             <label>Распределение призовых</label>
-            <input type="text" name="prize_distribution" placeholder="1-е место: 60%, 2-е: 30%, 3-е: 10%">
+            <input type="text" name="prize_distribution" placeholder="1-е место: 60%, 2-е: 30%">
           </div>
         </div>
 
         <div class="form-group">
           <label>Описание / Правила турнира</label>
-          <textarea name="description" rows="3" style="width:100%; background:#0b0c10; border:1px solid #45a29e; color:#fff; border-radius:4px; padding:10px;" placeholder="Регламент, правила карт, античит и т.д."></textarea>
+          <textarea name="description" rows="3" style="width:100%; background:#0b0c10; border:1px solid #45a29e; color:#fff; border-radius:4px; padding:10px;" placeholder="Регламент"></textarea>
         </div>
 
         <button type="submit" class="btn">Создать турнир</button>
@@ -131,7 +127,7 @@
       </div>
     </div>
 
-    <h2>Список Турниров и Редактирование Результатов</h2>
+    <h2>Список Турниров и Детализация Матчей</h2>
     <br>
     <div id="tournamentsList" class="grid">
       <p class="empty-msg">Загрузка турниров...</p>
@@ -139,6 +135,8 @@
   </div>
 
   <script>
+    let globalMaps = [];
+
     function toggleCustomInput(selectId, customBoxId) {
       const select = document.getElementById(selectId);
       const box = document.getElementById(customBoxId);
@@ -184,6 +182,12 @@
         return;
       }
 
+      // Загрузка списков карт
+      try {
+        const mapsRes = await fetch('/api/maps');
+        globalMaps = await mapsRes.json();
+      } catch (e) {}
+
       // Юзеры
       try {
         const resUsers = await fetch('/api/users');
@@ -222,11 +226,8 @@
                 <h3>${t.name} <span style="font-size:0.85rem; color:#45a29e;">[${t.game}]</span></h3>
                 <p>Формат: <strong>${t.format}</strong> | Команд: <strong>${t.team_count}</strong></p>
                 <p>Старт: <strong>${new Date(t.start_time).toLocaleString('ru')}</strong> | Призовые: <strong>${t.prize_pool}</strong></p>
-                ${t.prize_distribution ? `<p>Призы: <small>${t.prize_distribution}</small></p>` : ''}
-                ${t.description ? `<p style="margin-top:5px; color:#aaa;"><small>${t.description}</small></p>` : ''}
               </div>
 
-              <!-- Управление статусом -->
               <form action="/api/tournaments/${t.id}/status" method="POST" style="display:flex; gap:10px; align-items:center;">
                 <select name="status" style="padding:8px; background:#0b0c10; color:#fff; border:1px solid #45a29e;">
                   <option value="pending" ${t.status === 'pending' ? 'selected' : ''}>⏳ В ожидании</option>
@@ -240,31 +241,58 @@
 
             <hr style="border-color:#45a29e; margin: 1.5rem 0;">
 
-            <h4>⚔️ Редактор Матчей Раунда 1</h4>
-            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:15px; margin-top:10px;">
+            <h4>⚔️ Настройка Матчей (Карта, Время, Счёт)</h4>
+            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:15px; margin-top:10px;">
               ${t.matches.map(m => `
                 <form action="/api/tournaments/${t.id}/match" method="POST" style="background:#0b0c10; padding:12px; border:1px solid #45a29e; border-radius:4px;">
                   <input type="hidden" name="matchId" value="${m.id}">
                   <div style="font-weight:bold; color:#66fcf1; margin-bottom:8px;">Матч #${m.id}</div>
                   
+                  <!-- Команды и счет -->
                   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
                     <span style="color:#fff;">${m.team1}</span>
                     <input type="number" name="score1" value="${m.score1}" style="width:50px; text-align:center;">
                   </div>
 
-                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                     <span style="color:#fff;">${m.team2}</span>
                     <input type="number" name="score2" value="${m.score2}" style="width:50px; text-align:center;">
                   </div>
 
-                  <div style="display:flex; gap:10px; align-items:center;">
-                    <select name="winner" style="padding:4px; font-size:0.8rem; flex:1;">
-                      <option value="">-- Победитель --</option>
+                  <!-- Победитель -->
+                  <div style="margin-bottom:8px;">
+                    <label style="font-size:0.75rem; color:#aaa;">Победитель:</label>
+                    <select name="winner" style="width:100%; padding:4px; font-size:0.85rem;">
+                      <option value="">-- Не определен --</option>
                       <option value="${m.team1}" ${m.winner === m.team1 ? 'selected' : ''}>${m.team1}</option>
                       <option value="${m.team2}" ${m.winner === m.team2 ? 'selected' : ''}>${m.team2}</option>
                     </select>
-                    <button type="submit" class="btn" style="width:auto; padding:4px 10px; font-size:0.8rem;">OK</button>
                   </div>
+
+                  <!-- Выбор карты -->
+                  <div style="margin-bottom:8px;">
+                    <label style="font-size:0.75rem; color:#aaa;">Карта (Map):</label>
+                    <select name="map" style="width:100%; padding:4px; font-size:0.85rem;">
+                      <option value="TBD (Не выбрана)">TBD (Не выбрана)</option>
+                      ${globalMaps.map(map => `
+                        <option value="${map.name}" ${m.map === map.name ? 'selected' : ''}>${map.name}</option>
+                      `).join('')}
+                    </select>
+                  </div>
+
+                  <!-- Время матча -->
+                  <div style="margin-bottom:8px;">
+                    <label style="font-size:0.75rem; color:#aaa;">Время начала матча:</label>
+                    <input type="text" name="match_time" value="${m.match_time || ''}" placeholder="Например: 18:00 МСК" style="width:100%; font-size:0.85rem; padding:4px;">
+                  </div>
+
+                  <!-- Ссылка на стрим -->
+                  <div style="margin-bottom:10px;">
+                    <label style="font-size:0.75rem; color:#aaa;">Стрим матча (URL):</label>
+                    <input type="url" name="stream_url" value="${m.stream_url || ''}" placeholder="https://twitch.tv/..." style="width:100%; font-size:0.85rem; padding:4px;">
+                  </div>
+
+                  <button type="submit" class="btn" style="width:100%; padding:6px; font-size:0.85rem;">Сохранить матч</button>
                 </form>
               `).join('')}
             </div>
