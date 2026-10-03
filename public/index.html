@@ -31,7 +31,7 @@
 
     <!-- ПОИСК И ФИЛЬТРАЦИЯ -->
     <div style="background:#1f2833; padding:15px; border-radius:8px; border:1px solid #45a29e; margin-bottom:2rem; display:flex; gap:15px; flex-wrap:wrap;">
-      <input type="text" id="searchInput" oninput="filterTournaments()" placeholder="🔍 Поиск турнира по названию..." style="flex:2; min-width:200px; padding:8px; background:#0b0c10; border:1px solid #45a29e; color:#fff;">
+      <input type="text" id="searchInput" oninput="filterTournaments()" placeholder="🔍 Поиск турнира..." style="flex:2; min-width:200px; padding:8px; background:#0b0c10; border:1px solid #45a29e; color:#fff;">
       
       <select id="statusFilter" onchange="filterTournaments()" style="flex:1; min-width:150px; padding:8px; background:#0b0c10; border:1px solid #45a29e; color:#fff;">
         <option value="all">Все статусы</option>
@@ -92,19 +92,31 @@
 
             <hr style="border-color:#45a29e; margin: 1rem 0;">
 
-            <h4>Турнирная Сетка</h4>
-            <div class="bracket">
-              <div class="bracket-round">
-                <h4>Раунд 1</h4>
+            <h4>Турнирная Сетка и Расписание Матчей</h4>
+            <div class="bracket" style="margin-top:10px;">
+              <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:15px;">
                 ${t.matches.map(m => `
-                  <div class="match-box">
-                    <div class="match-team" style="${m.winner === m.team1 ? 'color:#66fcf1; font-weight:bold;' : ''}">
+                  <div class="match-box" style="background:#0b0c10; padding:10px; border:1px solid #45a29e; border-radius:4px;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#45a29e; margin-bottom:5px;">
+                      <span>🗺️ ${m.map || 'TBD'}</span>
+                      <span>${m.match_time ? '⏰ ' + m.match_time : ''}</span>
+                    </div>
+
+                    <div class="match-team" style="display:flex; justify-content:space-between; ${m.winner === m.team1 ? 'color:#66fcf1; font-weight:bold;' : ''}">
                       <span>${m.team1}</span> <span>${m.score1}</span>
                     </div>
-                    <div style="border-bottom: 1px solid #333;"></div>
-                    <div class="match-team" style="${m.winner === m.team2 ? 'color:#66fcf1; font-weight:bold;' : ''}">
+
+                    <div style="border-bottom: 1px solid #333; margin: 4px 0;"></div>
+
+                    <div class="match-team" style="display:flex; justify-content:space-between; ${m.winner === m.team2 ? 'color:#66fcf1; font-weight:bold;' : ''}">
                       <span>${m.team2}</span> <span>${m.score2}</span>
                     </div>
+
+                    ${m.stream_url ? `
+                      <div style="margin-top:8px; text-align:right;">
+                        <a href="${m.stream_url}" target="_blank" style="color:#9146ff; font-size:0.75rem;">▶ Смотреть матч</a>
+                      </div>
+                    ` : ''}
                   </div>
                 `).join('')}
               </div>
