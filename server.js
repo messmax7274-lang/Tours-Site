@@ -25,8 +25,8 @@ async function initDb() {
       CREATE TABLE IF NOT EXISTS teams (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
-        tag VARCHAR(50),
-        captain_name VARCHAR(255)
+        captain_name VARCHAR(255),
+        members TEXT
       );
 
       CREATE TABLE IF NOT EXISTS maps (
@@ -49,6 +49,12 @@ async function initDb() {
         status VARCHAR(50) DEFAULT 'pending',
         matches JSONB
       );
+    `);
+
+    // Авто-миграция: если таблица teams уже была создана раньше без поля members, добавляем его
+    await pool.query(`
+      ALTER TABLE teams ADD COLUMN IF NOT EXISTS members TEXT;
+      ALTER TABLE teams DROP COLUMN IF EXISTS tag;
     `);
 
     // Дефолтный админ
@@ -306,7 +312,7 @@ app.post('/api/tournaments/:id/match', requireAdmin, async (req, res) => {
   res.redirect('/admin.html');
 });
 
-// TEAMS API
+// TEAMS API (Добавление команды без тега, но с участниками)
 app.get('/api/teams', async (req, res) => {
   const teamsRes = await pool.query('SELECT * FROM teams');
   res.json(teamsRes.rows);
@@ -320,10 +326,10 @@ app.post('/api/teams', requireAuth, async (req, res) => {
     return res.status(403).send('Только капитан команды или админ может регистрировать команду.');
   }
 
-  const { name, tag, captain_name } = req.body;
+  const { name, captain_name, members } = req.body;
   await pool.query(
-    'INSERT INTO teams (name, tag, captain_name) VALUES ($1, $2, $3)',
-    [name, tag, captain_name || currentUser.username]
+    'INSERT INTO teams (name, captain_name, members) VALUES ($1, $2, $3)',
+    [name, captain_name || currentUser.username, members || '']
   );
   
   res.redirect('/teams.html');
