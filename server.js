@@ -8,32 +8,13 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Настройка сессий с файловым хранилищем (убирает ворнинг MemoryStore)
+// Настройка сессий (убирает ворнинг MemoryStore)
 app.use(session({
   store: new FileStore({
     path: './sessions',
-    ttl: 86400, // 24 часа
+    ttl: 86400,
     retries: 0
   }),
-  secret: 'aether-super-secret-key-2026',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000 }
-}));
-
-// Дальше твой остальной код server.js без изменений...
-
-const express = require('express');
-const session = require('express-session');
-const path = require('path');
-
-const app = express();
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Настройка сессий
-app.use(session({
   secret: 'aether-super-secret-key-2026',
   resave: false,
   saveUninitialized: false,
@@ -133,5 +114,3 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-
