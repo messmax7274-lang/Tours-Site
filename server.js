@@ -21,11 +21,7 @@ let users = [
 ];
 
 let teams = [];
-let maps = [
-  { id: 1, name: 'Mirage', image_url: '' },
-  { id: 2, name: 'Inferno', image_url: '' },
-  { id: 3, name: 'Nuke', image_url: '' }
-];
+let maps = [];
 let tournaments = [];
 let activeAnnouncement = null;
 
@@ -71,7 +67,7 @@ app.get('/api/logout', (req, res) => {
 
 app.get('/api/me', (req, res) => res.json(req.session.user || null));
 
-// USERS
+// USER ROLES
 app.get('/api/users', requireAdmin, (req, res) => {
   res.json(users.map(u => ({ id: u.id, username: u.username, role: u.role })));
 });
@@ -83,24 +79,24 @@ app.post('/api/users/role', requireAdmin, (req, res) => {
   res.redirect('/admin.html');
 });
 
-// ANNOUNCEMENT
+// ANNOUNCEMENTS
 app.get('/api/announcement', (req, res) => res.json(activeAnnouncement));
 
 // TOURNAMENTS API
 app.get('/api/tournaments', (req, res) => res.json(tournaments));
 
 app.post('/api/tournaments', requireAdmin, (req, res) => {
-  const {
-    name, game, custom_game, start_time, twitch_url,
-    format, custom_format, team_count, custom_team_count,
-    prize_pool, region, rules, sponsors, map_pool, status
+  const { 
+    name, game_select, game_custom, start_time, twitch_url, 
+    format_select, format_custom, team_count_select, team_count_custom, 
+    prize_pool, prize_distribution, description 
   } = req.body;
 
-  const finalGame = game === 'custom' ? custom_game : game;
-  const finalFormat = format === 'custom' ? custom_format : format;
-  const finalTeamCount = team_count === 'custom' ? parseInt(custom_team_count) || 8 : parseInt(team_count) || 8;
+  const finalGame = game_select === 'custom' ? game_custom : game_select;
+  const finalFormat = format_select === 'custom' ? format_custom : format_select;
+  const finalTeamCount = team_count_select === 'custom' ? parseInt(team_count_custom) || 8 : parseInt(team_count_select);
 
-  // Формирование динамической сетки
+  // Генерация стартовых матчей
   const matches = [];
   const round1Matches = Math.max(1, Math.floor(finalTeamCount / 2));
 
@@ -110,47 +106,36 @@ app.post('/api/tournaments', requireAdmin, (req, res) => {
       round: 1,
       team1: teams[i * 2] ? teams[i * 2].name : `Команда ${i * 2 + 1}`,
       team2: teams[i * 2 + 1] ? teams[i * 2 + 1].name : `Команда ${i * 2 + 2}`,
-      score: 'VS'
+      score1: 0,
+      score2: 0,
+      winner: null
     });
   }
-
-  const selectedMaps = Array.isArray(map_pool) ? map_pool : (map_pool ? [map_pool] : []);
 
   const tournament = {
     id: Date.now(),
     name,
-    game: finalGame || 'Не указана',
+    game: finalGame || 'Разное',
     start_time,
     twitch_url,
-    format: finalFormat || 'Свободный',
+    format: finalFormat || 'Single Elimination',
     team_count: finalTeamCount,
-    prize_pool: prize_pool || 'Не указан',
-    region: region || 'Global',
-    rules: rules || 'Стандартные правила проведения.',
-    sponsors: sponsors || 'AETHER Community',
-    map_pool: selectedMaps,
-    status: status || 'pending',
+    prize_pool: prize_pool || '0 $',
+    prize_distribution: prize_distribution || '',
+    description: description || '',
+    status: 'pending', // pending, active, paused, finished
     matches
   };
 
   tournaments.push(tournament);
-
-  if (status === 'active') {
-    activeAnnouncement = {
-      tournamentName: tournament.name,
-      twitchUrl: tournament.twitch_url,
-      game: tournament.game
-    };
-  }
-
   res.redirect('/admin.html');
 });
 
-// Смена статуса турнира / Запуск
+// Изменение статуса и запуск
 app.post('/api/tournaments/:id/status', requireAdmin, (req, res) => {
-  const tournament = tournaments.find(t => t.id == req.params.id);
   const { status } = req.body;
-
+  const tournament = tournaments.find(t => t.id == req.params.id);
+  
   if (tournament) {
     tournament.status = status;
     if (status === 'active') {
@@ -159,14 +144,29 @@ app.post('/api/tournaments/:id/status', requireAdmin, (req, res) => {
         twitchUrl: tournament.twitch_url,
         game: tournament.game
       };
-    } else if (activeAnnouncement && activeAnnouncement.tournamentName === tournament.name) {
+    } else if (activeAnnouncement && activeAnnouncement.tournamentName === tournament.name && status === 'finished') {
       activeAnnouncement = null;
     }
   }
   res.redirect('/admin.html');
 });
 
-// MAPS & TEAMS API
+// Обновление счета и результатов матчей
+app.post('/api/tournaments/:id/match', requireAdmin, (req, res) => {
+  const { matchId, score1, score2, winner } = req.body;
+  const tournament = tournaments.find(t => t.id == req.params.id);
+  if (tournament) {
+    const match = tournament.matches.find(m => m.id == matchId);
+    if (match) {
+      match.score1 = parseInt(score1) || 0;
+      match.score2 = parseInt(score2) || 0;
+      match.winner = winner || null;
+    }
+  }
+  res.redirect('/admin.html');
+});
+
+// Остальные API
 app.get('/api/teams', (req, res) => res.json(teams));
 app.post('/api/teams', requireAuth, (req, res) => {
   const { name, tag, captain_name } = req.body;
