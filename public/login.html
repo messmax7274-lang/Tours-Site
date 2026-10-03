@@ -10,11 +10,10 @@
 
   <header>
     <a href="/" class="logo">AETHER</a>
-    <nav>
+    <nav id="navMenu">
       <a href="/">Главная</a>
       <a href="/teams.html">Команды</a>
       <a href="/maps.html">Карты</a>
-      <a href="/admin.html">Админка</a>
       <a href="/login.html" class="active">Войти</a>
     </nav>
   </header>
@@ -49,5 +48,27 @@
     </form>
   </div>
 
+  <script>
+    async function updateNav() {
+      try {
+        const res = await fetch('/api/me');
+        const user = await res.json();
+        const nav = document.getElementById('navMenu');
+
+        if (user) {
+          let adminLink = user.role === 'admin' ? '<a href="/admin.html">Админка</a>' : '';
+          nav.innerHTML = `
+            <a href="/">Главная</a>
+            <a href="/teams.html">Команды</a>
+            <a href="/maps.html">Карты</a>
+            ${adminLink}
+            <span style="color:#66fcf1; margin-left:1rem;">[${user.username}]</span>
+            <a href="/api/logout" style="color:#ff4655;">Выйти</a>
+          `;
+        }
+      } catch (e) {}
+    }
+    updateNav();
+  </script>
 </body>
 </html>
