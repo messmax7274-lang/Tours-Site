@@ -1,14 +1,19 @@
 const express = require('express');
+const session = require('express-session');
 const path = require('path');
 
 const app = express();
 
-// Парсинг JSON и данных из HTML-форм
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Раздача статических HTML/CSS/JS файлов из папки public
-app.use(express.static(path.join(__dirname, 'public')));
+// Настройка сессий
+app.use(session({
+  secret: 'aether-super-secret-key-2026',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 24 * 60 * 60 * 1000 }
+}));
 
 // База данных в памяти
 let users = [];
@@ -16,7 +21,30 @@ let teams = [];
 let maps = [];
 let tournaments = [];
 
-// --- ЛОГИН / РЕГИСТРАЦИЯ ---
+// Middlewares безопасности
+function requireAdmin(req, res, next) {
+  if (req.session && req.session.user && req.session.user.role === 'admin') {
+    return next();
+  }
+  return res.status(403).redirect('/login.html?error=forbidden');
+}
+
+function requireAuth(req, res, next) {
+  if (req.session && req.session.user) {
+    return next();
+  }
+  return res.status(401).redirect('/login.html');
+}
+
+// Защита прямого перехода на admin.html
+app.get('/admin.html', requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// Раздача публичных статичных файлов
+app.use(express.static(path.join(__dirname, 'public')));
+
+// AUTH API
 app.post('/api/login', (req, res) => {
   const { username, password, role } = req.body;
   if (!username || !password) return res.status(400).send('Заполните все поля');
@@ -27,6 +55,8 @@ app.post('/api/login', (req, res) => {
     users.push(user);
   }
 
+  req.session.user = user;
+
   if (user.role === 'admin') {
     res.redirect('/admin.html');
   } else if (user.role === 'captain') {
@@ -36,34 +66,42 @@ app.post('/api/login', (req, res) => {
   }
 });
 
-// --- API КОМАНД ---
+app.get('/api/logout', (req, res) => {
+  req.session.destroy();
+  res.redirect('/login.html');
+});
+
+app.get('/api/me', (req, res) => {
+  res.json(req.session.user || null);
+});
+
+// TEAMS API
 app.get('/api/teams', (req, res) => res.json(teams));
 
-app.post('/api/teams', (req, res) => {
+app.post('/api/teams', requireAuth, (req, res) => {
   const { name, tag, captain_name } = req.body;
-  teams.push({ id: Date.now(), name, tag, captain_name: captain_name || 'Капитан' });
+  teams.push({ id: Date.now(), name, tag, captain_name: captain_name || req.session.user.username });
   res.redirect('/teams.html');
 });
 
-// --- API КАРТ ---
+// MAPS API
 app.get('/api/maps', (req, res) => res.json(maps));
 
-app.post('/api/maps', (req, res) => {
+app.post('/api/maps', requireAdmin, (req, res) => {
   const { name, image_url } = req.body;
   maps.push({ id: Date.now(), name, image_url });
   res.redirect('/maps.html');
 });
 
-// --- API ТУРНИРОВ ---
+// TOURNAMENTS API
 app.get('/api/tournaments', (req, res) => res.json(tournaments));
 
-app.post('/api/tournaments', (req, res) => {
+app.post('/api/tournaments', requireAdmin, (req, res) => {
   const { name, team_count } = req.body;
   tournaments.push({ id: Date.now(), name, team_count });
   res.redirect('/admin.html');
 });
 
-// Главный роут
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
