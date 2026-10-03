@@ -8,6 +8,11 @@
 </head>
 <body>
 
+  <div id="globalAnnouncement">
+    <span id="announcementText">🔴 ТУРНИР НАЧАЛСЯ!</span>
+    <a id="announcementLink" href="#" target="_blank">Смотреть на Twitch 🎬</a>
+  </div>
+
   <header>
     <a href="/" class="logo">AETHER</a>
     <nav id="navMenu">
@@ -20,74 +25,102 @@
 
   <div class="container">
     <div class="hero">
-      <h1>Маппул Турнира</h1>
-      <p>Карты для проведения матчей</p>
+      <h1>Пуловые Карты</h1>
+      <p>Официальные локации и турнирный маппул</p>
     </div>
 
-    <div id="addMapBox" style="margin-bottom: 2rem; display: none;">
+    <!-- ФОРМА ДОБАВЛЕНИЯ КАРТЫ (ТОЛЬКО АДМИН) -->
+    <div id="addMapBox" style="display:none; margin-bottom: 2rem;">
       <form action="/api/maps" method="POST" class="card">
-        <h3>Добавить карту (Только для Админа)</h3>
+        <h3>🗺️ Добавить новую карту</h3>
         <br>
-        <div class="form-group">
-          <label>Название карты</label>
-          <input type="text" name="name" required placeholder="Например: Dust II">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Название карты</label>
+            <input type="text" name="name" required placeholder="Например: Dust II, De_Cache">
+          </div>
+          <div class="form-group">
+            <label>Ссылка на Изображение (URL)</label>
+            <input type="url" name="image_url" placeholder="https://site.com/image.jpg">
+          </div>
         </div>
-        <div class="form-group">
-          <label>Ссылка на картинку (URL)</label>
-          <input type="text" name="image_url" placeholder="https://example.com/image.jpg">
-        </div>
-        <button type="submit" class="btn">Добавить карту</button>
+        <button type="submit" class="btn">Сохранить карту</button>
       </form>
     </div>
 
+    <h2>Список Доступных Карт</h2>
+    <br>
     <div id="mapsList" class="grid">
       <p class="empty-msg">Загрузка карт...</p>
     </div>
   </div>
 
   <script>
+    let currentUser = null;
+
+    async function checkAnnouncement() {
+      try {
+        const res = await fetch('/api/announcement');
+        const data = await res.json();
+        if (data) {
+          const banner = document.getElementById('globalAnnouncement');
+          document.getElementById('announcementText').innerText = `🚨 ТУРНИР "${data.tournamentName.toUpperCase()}" НАЧАЛСЯ!`;
+          document.getElementById('announcementLink').href = data.twitchUrl;
+          banner.style.display = 'flex';
+        }
+      } catch (e) {}
+    }
+
     async function init() {
-      const nav = document.getElementById('navMenu');
-      const addMapBox = document.getElementById('addMapBox');
+      checkAnnouncement();
 
       try {
-        const resUser = await fetch('/api/me');
-        const user = await resUser.json();
+        const res = await fetch('/api/me');
+        currentUser = await res.json();
+        const nav = document.getElementById('navMenu');
 
-        if (user) {
-          if (user.role === 'admin') {
-            addMapBox.style.display = 'block';
-          }
-          let adminLink = user.role === 'admin' ? '<a href="/admin.html">Админка</a>' : '';
+        if (currentUser) {
+          let adminLink = currentUser.role === 'admin' ? '<a href="/admin.html">Админка</a>' : '';
           nav.innerHTML = `
             <a href="/">Главная</a>
             <a href="/teams.html">Команды</a>
             <a href="/maps.html" class="active">Карты</a>
             ${adminLink}
-            <span style="color:#66fcf1; margin-left:1rem;">[${user.username}]</span>
+            <span style="color:#66fcf1; margin-left:1rem;">[${currentUser.username}]</span>
             <a href="/api/logout" style="color:#ff4655;">Выйти</a>
           `;
+
+          if (currentUser.role === 'admin') {
+            document.getElementById('addMapBox').style.display = 'block';
+          }
         }
       } catch (e) {}
 
-      const container = document.getElementById('mapsList');
+      // Загрузка карт
       try {
         const res = await fetch('/api/maps');
         const maps = await res.json();
+        const container = document.getElementById('mapsList');
 
         if (!maps || maps.length === 0) {
-          container.innerHTML = '<p class="empty-msg">Карты еще не добавлены.</p>';
+          container.innerHTML = '<p class="empty-msg">Карты пока не добавлены.</p>';
           return;
         }
 
-        container.innerHTML = maps.map(map => `
-          <div class="card">
-            <h3>${map.name}</h3>
-            ${map.image_url ? `<img src="${map.image_url}" alt="${map.name}" style="width:100%; border-radius:4px; margin-top:0.5rem;">` : ''}
+        container.innerHTML = maps.map(m => `
+          <div class="card" style="text-align:center;">
+            <img src="${m.image_url}" alt="${m.name}" style="width:100%; height:180px; object-fit:cover; border-radius:4px; margin-bottom:10px;">
+            <h3>${m.name}</h3>
+            ${currentUser && currentUser.role === 'admin' ? `
+              <form action="/api/maps/delete" method="POST" style="margin-top:10px;">
+                <input type="hidden" name="mapId" value="${m.id}">
+                <button type="submit" class="btn" style="background:#ff4655; color:#fff; width:100%; padding:5px; font-size:0.8rem;">🗑️ Удалить карту</button>
+              </form>
+            ` : ''}
           </div>
         `).join('');
-      } catch (err) {
-        container.innerHTML = '<p class="empty-msg">Ошибка при загрузке карт.</p>';
+      } catch (e) {
+        document.getElementById('mapsList').innerHTML = '<p class="empty-msg">Ошибка при загрузке карт.</p>';
       }
     }
 
