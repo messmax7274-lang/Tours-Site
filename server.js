@@ -1,6 +1,5 @@
 const express = require('express');
 const session = require('express-session');
-const FileStore = require('session-file-store')(session);
 const path = require('path');
 
 const app = express();
@@ -9,73 +8,81 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
-  store: new FileStore({ path: './sessions', ttl: 86400, retries: 0 }),
   secret: 'aether-super-secret-key-2026',
   resave: false,
   saveUninitialized: false,
   cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// Дефолтный админ и хранилище пользователей
+// Главный админ создан по умолчанию
 let users = [
   { id: 1, username: 'admin', password: 'Chuvak_Lif3', role: 'admin' }
 ];
 
 let teams = [];
-let maps = [];
+let maps = [
+  { id: 1, name: 'Mirage', image_url: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500' },
+  { id: 2, name: 'Inferno', image_url: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=500' }
+];
 let tournaments = [];
 let activeAnnouncement = null;
 
+// Middleware проверки прав Админа (сверяем актуальную роль из массива users)
 function requireAdmin(req, res, next) {
-  if (req.session && req.session.user && req.session.user.role === 'admin') return next();
-  return res.status(403).redirect('/login.html?error=forbidden');
+  if (!req.session || !req.session.user) {
+    return res.status(401).redirect('/login.html');
+  }
+  
+  // Ищем свежие данные о пользователе
+  const currentUser = users.find(u => u.id === req.session.user.id);
+  if (currentUser && currentUser.role === 'admin') {
+    req.session.user.role = 'admin'; // обновляем сессию
+    return next();
+  }
+  
+  return res.status(403).send('Недостаточно прав. Доступ только для Администраторов. <a href="/">На главную</a>');
 }
 
+// Middleware проверки авторизации
 function requireAuth(req, res, next) {
   if (req.session && req.session.user) return next();
   return res.status(401).redirect('/login.html');
 }
 
+// Страница админки — строго для пользователей с ролью admin
 app.get('/admin.html', requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ИСПРАВЛЕННЫЙ ВХОД И АВТО-РЕГИСТРАЦИЯ
+// AUTH API
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).send('Заполните логин и пароль');
-  }
+  if (!username || !password) return res.status(400).send('Заполните логин и пароль');
 
   const cleanUsername = username.trim();
   let user = users.find(u => u.username.toLowerCase() === cleanUsername.toLowerCase());
 
   if (user) {
-    // Если юзер существует — проверяем пароль
     if (user.password !== password) {
       return res.status(401).send('Неверный пароль. <a href="/login.html">Попробовать снова</a>');
     }
   } else {
-    // Если юзера нет — АВТОМАТИЧЕСКИ РЕГИСТРИРУЕМ его
+    // Новый зарегистрированный юзер по умолчанию viewer
     user = {
       id: Date.now(),
       username: cleanUsername,
-      password: password, // Сохраняем введенный пароль!
-      role: 'viewer' // По умолчанию роль "Зритель"
+      password: password,
+      role: 'viewer'
     };
     users.push(user);
   }
 
-  // Записываем в сессию
-  req.session.user = {
-    id: user.id,
-    username: user.username,
-    role: user.role
-  };
+  // Записываем актуальную роль
+  req.session.user = { id: user.id, username: user.username, role: user.role };
 
-  // Перенаправление в зависимости от роли
+  // Перенаправление по ролям
   if (user.role === 'admin') {
     res.redirect('/admin.html');
   } else if (user.role === 'captain') {
@@ -86,16 +93,22 @@ app.post('/api/login', (req, res) => {
 });
 
 app.get('/api/logout', (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/login.html');
-  });
+  req.session.destroy(() => res.redirect('/login.html'));
 });
 
+// Возвращает свежую информацию о текущем пользователе
 app.get('/api/me', (req, res) => {
-  res.json(req.session.user || null);
+  if (!req.session || !req.session.user) return res.json(null);
+  
+  const currentUser = users.find(u => u.id === req.session.user.id);
+  if (currentUser) {
+    req.session.user.role = currentUser.role;
+    return res.json({ id: currentUser.id, username: currentUser.username, role: currentUser.role });
+  }
+  res.json(null);
 });
 
-// USER ROLES (Только для Админа)
+// УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ И РОЛЯМИ (Только Админ)
 app.get('/api/users', requireAdmin, (req, res) => {
   res.json(users.map(u => ({ id: u.id, username: u.username, role: u.role })));
 });
@@ -103,12 +116,31 @@ app.get('/api/users', requireAdmin, (req, res) => {
 app.post('/api/users/role', requireAdmin, (req, res) => {
   const { userId, role } = req.body;
   const user = users.find(u => u.id == userId);
-  if (user) user.role = role;
+  if (user) {
+    user.role = role;
+  }
   res.redirect('/admin.html');
 });
 
 // ANNOUNCEMENTS
 app.get('/api/announcement', (req, res) => res.json(activeAnnouncement));
+
+// MAPS API
+app.get('/api/maps', (req, res) => res.json(maps));
+
+app.post('/api/maps', requireAdmin, (req, res) => {
+  const { name, image_url } = req.body;
+  if (name) {
+    maps.push({ id: Date.now(), name, image_url: image_url || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500' });
+  }
+  res.redirect('/maps.html');
+});
+
+app.post('/api/maps/delete', requireAdmin, (req, res) => {
+  const { mapId } = req.body;
+  maps = maps.filter(m => m.id != mapId);
+  res.redirect('/maps.html');
+});
 
 // TOURNAMENTS API
 app.get('/api/tournaments', (req, res) => res.json(tournaments));
@@ -135,7 +167,10 @@ app.post('/api/tournaments', requireAdmin, (req, res) => {
       team2: teams[i * 2 + 1] ? teams[i * 2 + 1].name : `Команда ${i * 2 + 2}`,
       score1: 0,
       score2: 0,
-      winner: null
+      winner: null,
+      map: 'TBD (Не выбрана)',
+      match_time: '',
+      stream_url: ''
     });
   }
 
@@ -177,8 +212,9 @@ app.post('/api/tournaments/:id/status', requireAdmin, (req, res) => {
   res.redirect('/admin.html');
 });
 
+// МАТЧИ
 app.post('/api/tournaments/:id/match', requireAdmin, (req, res) => {
-  const { matchId, score1, score2, winner } = req.body;
+  const { matchId, score1, score2, winner, map, match_time, stream_url } = req.body;
   const tournament = tournaments.find(t => t.id == req.params.id);
   if (tournament) {
     const match = tournament.matches.find(m => m.id == matchId);
@@ -186,28 +222,37 @@ app.post('/api/tournaments/:id/match', requireAdmin, (req, res) => {
       match.score1 = parseInt(score1) || 0;
       match.score2 = parseInt(score2) || 0;
       match.winner = winner || null;
+      match.map = map || 'TBD (Не выбрана)';
+      match.match_time = match_time || '';
+      match.stream_url = stream_url || '';
     }
   }
   res.redirect('/admin.html');
 });
 
-// КОРЗИНА И КОМАНДЫ
+// TEAMS API (Добавлять команды могут КАПИТАНЫ и АДМИНЫ)
 app.get('/api/teams', (req, res) => res.json(teams));
-app.post('/api/teams', requireAuth, (req, res) => {
-  const { name, tag, captain_name } = req.body;
-  teams.push({ id: Date.now(), name, tag, captain_name: captain_name || req.session.user.username });
-  res.redirect('/teams.html');
-});
 
-app.get('/api/maps', (req, res) => res.json(maps));
-app.post('/api/maps', requireAdmin, (req, res) => {
-  const { name, image_url } = req.body;
-  maps.push({ id: Date.now(), name, image_url });
-  res.redirect('/maps.html');
+app.post('/api/teams', requireAuth, (req, res) => {
+  const currentUser = users.find(u => u.id === req.session.user.id);
+  
+  // Создавать команду разрешено только капитану или админу
+  if (!currentUser || (currentUser.role !== 'captain' && currentUser.role !== 'admin')) {
+    return res.status(403).send('Только капитан команды или админ может регистрировать команду.');
+  }
+
+  const { name, tag, captain_name } = req.body;
+  teams.push({ 
+    id: Date.now(), 
+    name, 
+    tag, 
+    captain_name: captain_name || currentUser.username 
+  });
+  
+  res.redirect('/teams.html');
 });
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
