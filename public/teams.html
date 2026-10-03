@@ -9,11 +9,12 @@
 <body>
 
   <header>
-    <div class="logo">AETHER</div>
+    <a href="/" class="logo">AETHER</a>
     <nav>
       <a href="/">Главная</a>
       <a href="/teams.html" class="active">Команды</a>
       <a href="/maps.html">Карты</a>
+      <a href="/admin.html">Админка</a>
       <a href="/login.html">Войти</a>
     </nav>
   </header>
@@ -21,7 +22,27 @@
   <div class="container">
     <div class="hero">
       <h1>Зарегистрированные Команды</h1>
-      <p>Список команд, готовых к турниру</p>
+      <p>Список участников турнира</p>
+    </div>
+
+    <div style="margin-bottom: 2rem;">
+      <form action="/api/teams" method="POST" class="card" style="margin-bottom: 2rem;">
+        <h3>Регистрация команды</h3>
+        <br>
+        <div class="form-group">
+          <label>Название команды</label>
+          <input type="text" name="name" required placeholder="Например: NAVI">
+        </div>
+        <div class="form-group">
+          <label>Тег команды</label>
+          <input type="text" name="tag" required placeholder="Например: NAVI">
+        </div>
+        <div class="form-group">
+          <label>Имя капитана</label>
+          <input type="text" name="captain_name" placeholder="Имя капитана">
+        </div>
+        <button type="submit" class="btn">Добавить команду</button>
+      </form>
     </div>
 
     <div id="teamsList" class="grid">
@@ -37,7 +58,7 @@
         const teams = await res.json();
 
         if (!teams || teams.length === 0) {
-          container.innerHTML = '<p class="empty-msg">Команд пока нет. Зарегистрируйте первую через панель!</p>';
+          container.innerHTML = '<p class="empty-msg">Команд пока нет. Заполните форму выше!</p>';
           return;
         }
 
