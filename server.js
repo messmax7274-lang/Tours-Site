@@ -16,6 +16,7 @@ app.use(session({
   cookie: { maxAge: 24 * 60 * 60 * 1000 }
 }));
 
+// Дефолтный админ и хранилище пользователей
 let users = [
   { id: 1, username: 'admin', password: 'Chuvak_Lif3', role: 'admin' }
 ];
@@ -41,33 +42,60 @@ app.get('/admin.html', requireAdmin, (req, res) => {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// AUTH API
+// ИСПРАВЛЕННЫЙ ВХОД И АВТО-РЕГИСТРАЦИЯ
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
-  if (!username || !password) return res.status(400).send('Заполните все поля');
+  if (!username || !password) {
+    return res.status(400).send('Заполните логин и пароль');
+  }
 
-  let user = users.find(u => u.username === username);
+  const cleanUsername = username.trim();
+  let user = users.find(u => u.username.toLowerCase() === cleanUsername.toLowerCase());
+
   if (user) {
-    if (user.password && user.password !== password) return res.status(401).send('Неверный пароль');
+    // Если юзер существует — проверяем пароль
+    if (user.password !== password) {
+      return res.status(401).send('Неверный пароль. <a href="/login.html">Попробовать снова</a>');
+    }
   } else {
-    user = { id: Date.now(), username, password, role: 'viewer' };
+    // Если юзера нет — АВТОМАТИЧЕСКИ РЕГИСТРИРУЕМ его
+    user = {
+      id: Date.now(),
+      username: cleanUsername,
+      password: password, // Сохраняем введенный пароль!
+      role: 'viewer' // По умолчанию роль "Зритель"
+    };
     users.push(user);
   }
 
-  req.session.user = user;
-  if (user.role === 'admin') res.redirect('/admin.html');
-  else if (user.role === 'captain') res.redirect('/teams.html');
-  else res.redirect('/');
+  // Записываем в сессию
+  req.session.user = {
+    id: user.id,
+    username: user.username,
+    role: user.role
+  };
+
+  // Перенаправление в зависимости от роли
+  if (user.role === 'admin') {
+    res.redirect('/admin.html');
+  } else if (user.role === 'captain') {
+    res.redirect('/teams.html');
+  } else {
+    res.redirect('/');
+  }
 });
 
 app.get('/api/logout', (req, res) => {
-  req.session.destroy();
-  res.redirect('/login.html');
+  req.session.destroy(() => {
+    res.redirect('/login.html');
+  });
 });
 
-app.get('/api/me', (req, res) => res.json(req.session.user || null));
+app.get('/api/me', (req, res) => {
+  res.json(req.session.user || null);
+});
 
-// USER ROLES
+// USER ROLES (Только для Админа)
 app.get('/api/users', requireAdmin, (req, res) => {
   res.json(users.map(u => ({ id: u.id, username: u.username, role: u.role })));
 });
@@ -96,7 +124,6 @@ app.post('/api/tournaments', requireAdmin, (req, res) => {
   const finalFormat = format_select === 'custom' ? format_custom : format_select;
   const finalTeamCount = team_count_select === 'custom' ? parseInt(team_count_custom) || 8 : parseInt(team_count_select);
 
-  // Генерация стартовых матчей
   const matches = [];
   const round1Matches = Math.max(1, Math.floor(finalTeamCount / 2));
 
@@ -123,7 +150,7 @@ app.post('/api/tournaments', requireAdmin, (req, res) => {
     prize_pool: prize_pool || '0 $',
     prize_distribution: prize_distribution || '',
     description: description || '',
-    status: 'pending', // pending, active, paused, finished
+    status: 'pending',
     matches
   };
 
@@ -131,7 +158,6 @@ app.post('/api/tournaments', requireAdmin, (req, res) => {
   res.redirect('/admin.html');
 });
 
-// Изменение статуса и запуск
 app.post('/api/tournaments/:id/status', requireAdmin, (req, res) => {
   const { status } = req.body;
   const tournament = tournaments.find(t => t.id == req.params.id);
@@ -151,7 +177,6 @@ app.post('/api/tournaments/:id/status', requireAdmin, (req, res) => {
   res.redirect('/admin.html');
 });
 
-// Обновление счета и результатов матчей
 app.post('/api/tournaments/:id/match', requireAdmin, (req, res) => {
   const { matchId, score1, score2, winner } = req.body;
   const tournament = tournaments.find(t => t.id == req.params.id);
@@ -166,7 +191,7 @@ app.post('/api/tournaments/:id/match', requireAdmin, (req, res) => {
   res.redirect('/admin.html');
 });
 
-// Остальные API
+// КОРЗИНА И КОМАНДЫ
 app.get('/api/teams', (req, res) => res.json(teams));
 app.post('/api/teams', requireAuth, (req, res) => {
   const { name, tag, captain_name } = req.body;
