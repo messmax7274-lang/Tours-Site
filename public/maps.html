@@ -10,11 +10,10 @@
 
   <header>
     <a href="/" class="logo">AETHER</a>
-    <nav>
+    <nav id="navMenu">
       <a href="/">Главная</a>
       <a href="/teams.html">Команды</a>
       <a href="/maps.html" class="active">Карты</a>
-      <a href="/admin.html">Админка</a>
       <a href="/login.html">Войти</a>
     </nav>
   </header>
@@ -25,9 +24,9 @@
       <p>Карты для проведения матчей</p>
     </div>
 
-    <div style="margin-bottom: 2rem;">
-      <form action="/api/maps" method="POST" class="card" style="margin-bottom: 2rem;">
-        <h3>Добавить карту</h3>
+    <div id="addMapBox" style="margin-bottom: 2rem; display: none;">
+      <form action="/api/maps" method="POST" class="card">
+        <h3>Добавить карту (Только для Админа)</h3>
         <br>
         <div class="form-group">
           <label>Название карты</label>
@@ -47,7 +46,30 @@
   </div>
 
   <script>
-    async function loadMaps() {
+    async function init() {
+      const nav = document.getElementById('navMenu');
+      const addMapBox = document.getElementById('addMapBox');
+
+      try {
+        const resUser = await fetch('/api/me');
+        const user = await resUser.json();
+
+        if (user) {
+          if (user.role === 'admin') {
+            addMapBox.style.display = 'block';
+          }
+          let adminLink = user.role === 'admin' ? '<a href="/admin.html">Админка</a>' : '';
+          nav.innerHTML = `
+            <a href="/">Главная</a>
+            <a href="/teams.html">Команды</a>
+            <a href="/maps.html" class="active">Карты</a>
+            ${adminLink}
+            <span style="color:#66fcf1; margin-left:1rem;">[${user.username}]</span>
+            <a href="/api/logout" style="color:#ff4655;">Выйти</a>
+          `;
+        }
+      } catch (e) {}
+
       const container = document.getElementById('mapsList');
       try {
         const res = await fetch('/api/maps');
@@ -69,7 +91,7 @@
       }
     }
 
-    loadMaps();
+    init();
   </script>
 </body>
 </html>
