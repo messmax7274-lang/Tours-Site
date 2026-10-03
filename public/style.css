@@ -28,6 +28,7 @@ header {
   color: #66fcf1;
   letter-spacing: 2px;
   text-transform: uppercase;
+  text-decoration: none;
 }
 
 nav a {
@@ -92,6 +93,25 @@ nav a:hover, nav a.active {
   margin-bottom: 1rem;
 }
 
+.form-group {
+  margin-bottom: 1.2rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: #66fcf1;
+}
+
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 0.7rem;
+  background-color: #0b0c10;
+  border: 1px solid #45a29e;
+  color: #fff;
+  border-radius: 4px;
+}
+
 .btn {
   display: inline-block;
   background-color: #66fcf1;
@@ -104,6 +124,7 @@ nav a:hover, nav a.active {
   border: none;
   cursor: pointer;
   transition: background 0.2s;
+  width: 100%;
 }
 
 .btn:hover {
