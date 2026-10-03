@@ -10,7 +10,7 @@
 
   <header>
     <a href="/" class="logo">AETHER</a>
-    <nav>
+    <nav id="navMenu">
       <a href="/">Главная</a>
       <a href="/teams.html">Команды</a>
       <a href="/maps.html">Карты</a>
@@ -49,7 +49,31 @@
   </div>
 
   <script>
-    async function loadTournaments() {
+    async function init() {
+      const nav = document.getElementById('navMenu');
+
+      try {
+        const resUser = await fetch('/api/me');
+        const user = await resUser.json();
+
+        if (!user || user.role !== 'admin') {
+          window.location.href = '/login.html';
+          return;
+        }
+
+        nav.innerHTML = `
+          <a href="/">Главная</a>
+          <a href="/teams.html">Команды</a>
+          <a href="/maps.html">Карты</a>
+          <a href="/admin.html" class="active">Админка</a>
+          <span style="color:#66fcf1; margin-left:1rem;">[${user.username}]</span>
+          <a href="/api/logout" style="color:#ff4655;">Выйти</a>
+        `;
+      } catch (e) {
+        window.location.href = '/login.html';
+        return;
+      }
+
       const container = document.getElementById('tournamentsList');
       try {
         const res = await fetch('/api/tournaments');
@@ -71,7 +95,7 @@
       }
     }
 
-    loadTournaments();
+    init();
   </script>
 </body>
 </html>
