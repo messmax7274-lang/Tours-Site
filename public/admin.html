@@ -3,38 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CYBERGRID - Админка</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="style.css">
+  <title>Админка — AETHER</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col p-6">
+<body>
 
-  <header class="max-w-6xl w-full mx-auto flex justify-between items-center pb-6 border-b border-slate-800">
-    <a href="/" class="text-3xl font-extrabold text-cyan-400">CYBERGRID</a>
-    <a href="/login.html" class="text-sm text-slate-400 hover:text-slate-200">Выйти</a>
+  <header>
+    <a href="/" class="logo">AETHER</a>
+    <nav>
+      <a href="/">Главная</a>
+      <a href="/teams.html">Команды</a>
+      <a href="/maps.html">Карты</a>
+      <a href="/admin.html" class="active">Админка</a>
+      <a href="/login.html">Войти</a>
+    </nav>
   </header>
 
-  <nav class="max-w-6xl w-full mx-auto my-6 flex gap-6 border-b border-slate-800 text-sm font-medium pb-2">
-    <a href="/" class="text-slate-400 hover:text-slate-200">Сетка Турнира</a>
-    <a href="/teams.html" class="text-slate-400 hover:text-slate-200">Команды</a>
-    <a href="/maps.html" class="text-slate-400 hover:text-slate-200">Карты</a>
-    <a href="/admin.html" class="text-cyan-400 font-bold border-b-2 border-cyan-400 pb-2">Панель Управления</a>
-  </nav>
+  <div class="container">
+    <div class="hero">
+      <h1>Панель Администратора</h1>
+      <p>Управление турнирами</p>
+    </div>
 
-  <main class="max-w-6xl w-full mx-auto flex-1 grid gap-6">
-    <section class="bg-slate-800 border border-slate-700/60 rounded-xl p-6">
-      <h2 class="text-xl font-bold mb-4 text-cyan-300">Создание нового турнира</h2>
-      <form action="/api/tournaments" method="POST" class="flex flex-wrap gap-3">
-        <input type="text" name="name" placeholder="Название турнира (Autumn Cup)" required class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm flex-1 min-w-[200px]">
-        <select name="team_count" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm">
-          <option value="4">4 Команды</option>
-          <option value="8">8 Команд</option>
-          <option value="16">16 Команд</option>
-        </select>
-        <button type="submit" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm">Создать Турнир</button>
+    <div style="margin-bottom: 2rem;">
+      <form action="/api/tournaments" method="POST" class="card">
+        <h3>Создать новый турнир</h3>
+        <br>
+        <div class="form-group">
+          <label>Название турнира</label>
+          <input type="text" name="name" required placeholder="Например: AETHER Summer Cup">
+        </div>
+        <div class="form-group">
+          <label>Количество команд</label>
+          <input type="number" name="team_count" required value="8">
+        </div>
+        <button type="submit" class="btn">Создать турнир</button>
       </form>
-    </section>
-  </main>
+    </div>
 
+    <h2>Активные турниры</h2>
+    <br>
+    <div id="tournamentsList" class="grid">
+      <p class="empty-msg">Загрузка турниров...</p>
+    </div>
+  </div>
+
+  <script>
+    async function loadTournaments() {
+      const container = document.getElementById('tournamentsList');
+      try {
+        const res = await fetch('/api/tournaments');
+        const tournaments = await res.json();
+
+        if (!tournaments || tournaments.length === 0) {
+          container.innerHTML = '<p class="empty-msg">Турниров пока нет.</p>';
+          return;
+        }
+
+        container.innerHTML = tournaments.map(t => `
+          <div class="card">
+            <h3>${t.name}</h3>
+            <p>Команд в турнире: <strong>${t.team_count}</strong></p>
+          </div>
+        `).join('');
+      } catch (err) {
+        container.innerHTML = '<p class="empty-msg">Ошибка при загрузке турниров.</p>';
+      }
+    }
+
+    loadTournaments();
+  </script>
 </body>
 </html>
